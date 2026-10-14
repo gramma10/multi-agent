@@ -11,7 +11,7 @@
 | 5. Leads σε όγκο | ✅ (χωρίς πραγματικά κλειδιά) |
 | 6. Campaigns + QA + export | ✅ (export μπλοκαρισμένο μέχρι νομική έγκριση) |
 | 7. Tracker και βρόχος μάθησης | ✅ |
-| 8. Χρονοπρογραμματισμός και παράδοση | ✅ τοπικά (δεν έχει τρέξει στο Actions: δεν υπάρχει πρόσβαση push στο GitHub) |
+| 8. Χρονοπρογραμματισμός και παράδοση | ✅ (CI πράσινο στο Actions) |
 
 ---
 
@@ -29,9 +29,10 @@
 - `bash scripts/ci/dry-run-e2e.sh` τοπικά: πράσινο σε ~1,5 λεπτό. Κελιά φτάνουν ως `campaign_approved`, κάθε export (email, κλήσεις, DM) μπλοκάρεται με exit 2 και τη λίστα των λόγων, pilot και εβδομαδιαία αναφορά γράφονται.
 - `prepare-state.sh` / `commit-state.sh` απέναντι σε τοπικό bare remote: πρώτο run φτιάχνει το `factory/state` από το `main`· αλλαγή στο `main` μπαίνει με merge στο δεύτερο run· «καμία αλλαγή» δεν κάνει commit· `STATE_BRANCH=main` αρνείται με exit 1.
 - `npm run check` (orchestrator): 128/128. `node scripts/check-personal-data.mjs --all`: καθαρό.
+- **Στο GitHub Actions** (run 1 του `ci.yml`, https://github.com/gramma10/multi-agent/actions/runs/38632681776): `orchestrator`, `showcase` (με Playwright), `personal-data` και `dry-run` όλα πράσινα. Αυτό είναι το κριτήριο της φάσης.
 
 ### Τι ΔΕΝ ελέγχθηκε
-- **Τα workflows δεν έχουν τρέξει στο GitHub Actions.** Το push στο `gramma10/multi-agent` επιστρέφει 403 από την αρχή του session (το Claude GitHub App δεν έχει πρόσβαση στο repo), οπότε κανένα commit δεν έχει ανέβει. Το κριτήριο «πρασινίζει στο Actions» μένει ανοιχτό μέχρι το πρώτο push.
+- Τα scheduled workflows (νύχτα, πρωί, Δευτέρα) δεν έχουν τρέξει ακόμα: περιμένουν τη σειρά τους ή χειροκίνητο Run workflow. Το πραγματικό run χρειάζεται `main` (για το `factory/state`) και secrets.
 - Η εγκατάσταση των CLIs (`@anthropic-ai/claude-code`, `@openai/codex`, `@google/gemini-cli`) στο Actions και ένα πραγματικό run με `CLAUDE_CODE_OAUTH_TOKEN`.
 - Το job `showcase` του CI σε runner του GitHub (τοπικά περνά: 24/24 Playwright).
 
@@ -39,7 +40,7 @@
 D049–D051.
 
 ### Τι χρειάζομαι από τους ιδρυτές
-- **Πρόσβαση του Claude στο repo** (εγκατάσταση του Claude GitHub App στο `gramma10/multi-agent`), για να ανέβουν τα 8 commits στο `claude/wonderful-davinci-im3lie` και να ανοίξει το PR. Το repo δεν έχει ακόμα κανένα branch, ούτε `main`.
+- **Branch `main`** στο repo: δεν υπάρχει ακόμα (το πρώτο branch που ανέβηκε ήταν το `claude/wonderful-davinci-im3lie`). Χωρίς αυτό δεν ανοίγει PR και τα factory workflows δεν έχουν βάση για το `factory/state`.
 - Τα υπόλοιπα στο README → «Τι πρέπει να κάνουν οι ιδρυτές».
 
 ---
