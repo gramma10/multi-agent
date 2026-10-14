@@ -3,12 +3,13 @@
 id: iatreia-support
 vertical: iatreia
 service: support_agent
-state: demo_ready
+state: content_ready
 created_at: 2026-10-14T19:18:36.858Z
-updated_at: 2026-10-14T21:02:26.714Z
+updated_at: 2026-10-14T21:06:22.882Z
 attempts:
   scout: 0
   build: 0
+  content: 0
 last_error: null
 scout_score: 8
 gates:
@@ -21,6 +22,12 @@ gates:
   demo:
     opened_at: 2026-10-14T21:02:26.745Z
     ref: review
+    decided_at: 2026-10-14T21:06:20.798Z
+    decision: approved
+    by: gramma10
+  publish:
+    opened_at: 2026-10-14T21:06:22.904Z
+    ref: review
 feedback:
   - gate: idea
     at: 2026-10-14T21:01:06.872Z
@@ -28,6 +35,12 @@ feedback:
     decision: approved
     comments:
       - Έγκριση Gate 1 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
+  - gate: demo
+    at: 2026-10-14T21:06:20.798Z
+    by: gramma10
+    decision: approved
+    comments:
+      - Έγκριση Gate 2 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
 meta: {}
 history:
   - at: 2026-10-14T19:18:36.865Z
@@ -59,5 +72,23 @@ history:
     actor: agent:builder
     worker: prepared
     model: opus
+    duration_ms: 0
+    result: ok
+  - at: 2026-10-14T21:06:20.798Z
+    from: demo_ready
+    to: approved_demo
+    actor: human:gramma10
+    result: approved
+    note: Έγκριση Gate 2 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
+  - at: 2026-10-14T21:06:22.837Z
+    from: approved_demo
+    to: content_writing
+    actor: system:orchestrator
+  - at: 2026-10-14T21:06:22.882Z
+    from: content_writing
+    to: content_ready
+    actor: agent:content
+    worker: prepared
+    model: sonnet
     duration_ms: 0
     result: ok

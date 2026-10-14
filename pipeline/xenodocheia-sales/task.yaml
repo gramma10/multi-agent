@@ -3,12 +3,13 @@
 id: xenodocheia-sales
 vertical: xenodocheia
 service: sales_agent
-state: demo_ready
+state: content_ready
 created_at: 2026-10-14T19:18:37.728Z
-updated_at: 2026-10-14T21:02:47.496Z
+updated_at: 2026-10-14T21:06:23.843Z
 attempts:
   scout: 0
   build: 0
+  content: 0
 last_error: null
 scout_score: 9
 gates:
@@ -21,6 +22,12 @@ gates:
   demo:
     opened_at: 2026-10-14T21:02:47.542Z
     ref: review
+    decided_at: 2026-10-14T21:06:20.823Z
+    decision: approved
+    by: gramma10
+  publish:
+    opened_at: 2026-10-14T21:06:23.861Z
+    ref: review
 feedback:
   - gate: idea
     at: 2026-10-14T21:01:06.900Z
@@ -28,6 +35,12 @@ feedback:
     decision: approved
     comments:
       - Έγκριση Gate 1 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
+  - gate: demo
+    at: 2026-10-14T21:06:20.823Z
+    by: gramma10
+    decision: approved
+    comments:
+      - Έγκριση Gate 2 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
 meta: {}
 history:
   - at: 2026-10-14T19:18:37.737Z
@@ -59,5 +72,23 @@ history:
     actor: agent:builder
     worker: prepared
     model: opus
+    duration_ms: 0
+    result: ok
+  - at: 2026-10-14T21:06:20.823Z
+    from: demo_ready
+    to: approved_demo
+    actor: human:gramma10
+    result: approved
+    note: Έγκριση Gate 2 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
+  - at: 2026-10-14T21:06:23.798Z
+    from: approved_demo
+    to: content_writing
+    actor: system:orchestrator
+  - at: 2026-10-14T21:06:23.843Z
+    from: content_writing
+    to: content_ready
+    actor: agent:content
+    worker: prepared
+    model: sonnet
     duration_ms: 0
     result: ok

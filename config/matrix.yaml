@@ -63,7 +63,7 @@ cells:
     vertical: kommotiria
     service: booking_system
     priority: 90
-    status: demo_ready
+    status: content_ready
     fit: high
     notes: "Κρατήσεις κυρίως τηλεφωνικά, στη μέση της δουλειάς. No-shows. Υπενθύμιση σε Viber."
   - id: kommotiria-automation
@@ -77,7 +77,7 @@ cells:
     vertical: xenodocheia
     service: sales_agent
     priority: 86
-    status: demo_ready
+    status: content_ready
     fit: high
     notes: "Inquiries από email, site και social σε πολλές γλώσσες. Όποιος απαντά πρώτος κλείνει."
   - id: xenodocheia-support
@@ -126,7 +126,7 @@ cells:
     vertical: iatreia
     service: support_agent
     priority: 88
-    status: demo_ready
+    status: content_ready
     fit: high
     notes: "Η γραμματεία απαντά όλη μέρα στα ίδια: ωράριο, ραντεβού, ασφαλιστικά, τι να φέρω."
   - id: iatreia-operations
