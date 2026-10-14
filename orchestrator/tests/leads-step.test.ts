@@ -37,7 +37,8 @@ describe('βήμα leads στον orchestrator (dry-run)', () => {
       clock.t = new Date(clock.t.getTime() + 86_400_000);
       await runNight(ctx);
     }
-    expect(read().state).toBe('leads_ready');
+    // Από leads_ready συνεχίζει την ίδια νύχτα σε campaign/QA· ελέγχουμε ότι πέρασε από εκεί.
+    expect(read().history.some((h) => h.from === 'lead_sourcing' && h.to === 'leads_ready')).toBe(true);
 
     const stats = fs.readFileSync(path.join(repo, 'pipeline', id, 'campaign', 'leads-stats.md'), 'utf8');
     expect(stats).toContain('Οι πηγές για αυτό το κελί τελείωσαν.');

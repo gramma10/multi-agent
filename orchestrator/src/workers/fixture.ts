@@ -45,8 +45,11 @@ export class FixtureWorker implements Worker {
       fs.writeFileSync(target, content);
       written.push(rel);
     }
+    // Αν υπάρχει fixtures/<agent>/stdout.txt, αυτό είναι το output (π.χ. JSON του QA).
+    const stdoutTpl = path.join(this.fixturesDir, input.agent, 'stdout.txt');
+    const stdout = fs.existsSync(stdoutTpl) ? renderTemplate(fs.readFileSync(stdoutTpl, 'utf8'), input.context ?? {}) : null;
     return {
-      output: `fixture: έγραψα ${written.length ? written.join(', ') : 'τίποτα'}`,
+      output: stdout ?? `fixture: έγραψα ${written.length ? written.join(', ') : 'τίποτα'}`,
       usage: { input_tokens: 0, output_tokens: 0, cost_usd: 0 },
       exitReason: 'ok',
       durationMs: 1,

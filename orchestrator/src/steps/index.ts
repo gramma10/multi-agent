@@ -1,5 +1,6 @@
 import type { State } from '../state/machine.ts';
 import { buildStep } from './build.ts';
+import { campaignStep, qaStep } from './campaign.ts';
 import { contentStep } from './content.ts';
 import { leadsStep } from './leads.ts';
 import { scoutStep } from './scout.ts';
@@ -20,14 +21,31 @@ function pending(name: StepName, readyStates: State[], working: State, done: Sta
   };
 }
 
+/**
+ * Το export ΔΕΝ τρέχει αυτόματα τη νύχτα: το ζητά άνθρωπος με `factory -- export <campaign-id>`
+ * (τα αρχεία έχουν στοιχεία επαφών και δεν πρέπει να καταλήγουν σε logs/artifacts του CI).
+ */
+const exportStep: StepDef = {
+  name: 'export',
+  agent: null,
+  readyStates: ['campaign_approved'],
+  working: 'campaign_approved',
+  done: 'exported',
+  available: true,
+  manual: true,
+  async execute() {
+    return { ok: false, error: 'το export γίνεται μόνο με `factory -- export <campaign-id>`' };
+  },
+};
+
 export const STEPS: StepDef[] = [
   scoutStep,
   buildStep,
   contentStep,
   leadsStep,
-  pending('campaign', ['leads_ready'], 'campaign_drafting', 'qa_check', 6),
-  pending('qa', ['qa_check'], 'qa_check', 'campaign_ready', 6),
-  pending('export', ['campaign_approved'], 'campaign_approved', 'exported', 6),
+  campaignStep,
+  qaStep,
+  exportStep,
   pending('track', ['exported'], 'tracking', 'done', 7),
 ];
 

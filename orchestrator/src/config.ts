@@ -94,6 +94,8 @@ const VolumeSchema = z.object({
   campaigns: z
     .object({
       max_active: z.number().int().min(0).default(5),
+      max_leads_per_campaign: z.number().int().min(1).default(1000),
+      manual_drafts_per_day: z.number().int().min(0).default(20),
       sample_size_for_review: z.number().int().min(1).default(25),
       min_qa_pass_rate: z.number().min(0).max(1).default(0.95),
       max_qa_rounds: z.number().int().min(1).default(2),
@@ -144,6 +146,7 @@ const ChannelsSchema = z.object({
     address: z.string(),
     unsubscribe_url: z.string(),
     booking_url: z.string(),
+    demo_base_url: z.string().default('{{TODO: demo_base_url}}'),
   }),
 });
 export type ChannelsConfig = z.infer<typeof ChannelsSchema>;

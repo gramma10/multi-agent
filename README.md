@@ -117,5 +117,7 @@ GitHub Actions στο `.github/workflows/`:
 - [ ] **Supabase project** και εκτέλεση των migrations στο `supabase/migrations/`.
 - [ ] **Cal.com link** για τον «Χάρτη AI» και στοιχεία αποστολέα στο `config/channels.yaml` → `sender`.
 - [ ] **Γνώμη δικηγόρου** για cold email στην Ελλάδα (άρθρο 11 ν.3471/2006, GDPR) και για τις διεθνείς αγορές, με συμπλήρωση του `compliance/LEGAL_STATUS.md`. Οι ερωτήσεις είναι ήδη γραμμένες εκεί.
-- [ ] Αν εγκριθεί το email: sending domains, inboxes, warmup, εργαλείο αποστολής (βλ. `compliance/DELIVERABILITY.md`), και μετά `email.inboxes` στο `config/volume.yaml`.
+- [ ] Αν εγκριθεί το email: sending domains, inboxes, warmup, εργαλείο αποστολής (βλ. `compliance/DELIVERABILITY.md`), `config/sending-domains.yaml` (από το `.example`), και μετά `email.inboxes` και `email.warmup_started_at` στο `config/volume.yaml`.
+- [ ] Αν εγκριθούν οι κλήσεις: φόρτωση του μητρώου αντιρρήσεων κάθε μήνα (`npm run factory -- import-objection-registry <αρχείο>`).
+- [ ] **Exports:** τα κάνετε εσείς, τοπικά: `npm run factory -- export <campaign-id> --tool instantly|smartlead|lemlist`. Το αρχείο γράφεται στο `exports/` (εκτός git) και το ανεβάζετε στο εργαλείο αποστολής. Ο orchestrator δεν στέλνει ποτέ τίποτα.
 - [ ] **Καθημερινά, ~10 λεπτά:** εγκρίσεις στα GitHub Issues με labels.

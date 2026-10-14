@@ -185,6 +185,13 @@ export class LeadStore {
             if (l.sources[k]) sources[k] = l.sources[k]!;
           }
         }
+        // Το όνομα που χρησιμοποιεί η επιχείρηση (Places) προτιμάται από την επωνυμία μητρώου σε κεφαλαία.
+        const caps = (n: string) => ((n.match(/\p{Lu}/gu) ?? []).length / Math.max(1, (n.match(/\p{L}/gu) ?? []).length)) > 0.7;
+        if (caps(existing.name) && !caps(l.name)) {
+          merged.name = l.name;
+          merged.name_norm = l.name_norm;
+          if (l.sources.name) sources.name = l.sources.name;
+        }
         const kad = [...new Set([...existing.kad, ...l.kad])];
         const signals = { ...existing.signals };
         for (const [k, v] of Object.entries(l.signals)) if (v) signals[k] = v;
@@ -219,6 +226,17 @@ export class LeadStore {
       `insert into cell_leads (cell_id, business_id, score, reasons, added_at) values (?, ?, ?, ?, ?)
        on conflict (cell_id, business_id) do update set score = excluded.score, reasons = excluded.reasons`,
       [cellId, businessId, score, reasons, this.iso()],
+    );
+  }
+
+  /** Τα καλύτερα leads του κελιού που έχουν συγκεκριμένο είδος επαφής (ή οποιοδήποτε). */
+  async topLeadsWithContact(cellId: string, kind: 'email' | 'phone' | 'any', limit: number): Promise<Array<{ business_id: string; score: number }>> {
+    const cond = kind === 'any' ? '' : 'and c.kind = ?';
+    return this.db.all(
+      `select cl.business_id, cl.score from cell_leads cl
+       where cl.cell_id = ? and exists (select 1 from contacts c where c.business_id = cl.business_id ${cond})
+       order by cl.score desc, cl.business_id limit ?`,
+      kind === 'any' ? [cellId, limit] : [cellId, kind, limit],
     );
   }
 

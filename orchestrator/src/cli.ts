@@ -3,7 +3,8 @@ import { parseArgs } from 'node:util';
 import { DryRunApprovals } from './approvals/dry-run.ts';
 import { cellLabel, GATE_IDS } from './config.ts';
 import { createContext } from './context.ts';
-import { runCellStep, runMorning, runNext, runNight, runSyncApprovals, runSyncContent, statusRows, type RunReport } from './runner.ts';
+import { runCellStep, runExport, runMorning, runNext, runNight, runSyncApprovals, runSyncContent, statusRows, type RunReport } from './runner.ts';
+import { phoneE164 } from './leads/normalize.ts';
 import { gateForState } from './state/machine.ts';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -26,7 +27,11 @@ const HELP = `Auragram Showcase Factory
   cell <id> <βήμα>             χειροκίνητη εκτέλεση βήματος (scout|build|content|...)
   decide <id> <approved|changes|rejected> --by <όνομα> [--comment "..."]
                                απόφαση gate σε dry-run (στην κανονική λειτουργία: labels στο GitHub)
-  export <campaign-id>         batch για εργαλείο αποστολής (Φάση 6)
+  export <campaign-id> [--tool instantly|smartlead|lemlist]
+                               batch για το εργαλείο αποστολής, ΜΟΝΟ αν περάσει το compliance gate.
+                               Δεν στέλνει τίποτα: γράφει αρχείο στο exports/ (εκτός git)
+  import-objection-registry <αρχείο>
+                               φορτώνει το μητρώο αντιρρήσεων (άρθρο 11) στη suppression (τηλέφωνα)
 
 Leads (τα δεδομένα ζουν μόνο στη βάση, ποτέ στο git):
   leads <id> [--city Αθήνα] [--limit 50]
@@ -67,6 +72,7 @@ async function main(argv: string[]): Promise<number> {
       city: { type: 'string', multiple: true },
       limit: { type: 'string' },
       reason: { type: 'string' },
+      tool: { type: 'string' },
       help: { type: 'boolean', short: 'h', default: false },
     },
   });
@@ -141,8 +147,42 @@ async function main(argv: string[]): Promise<number> {
       console.log(`Καταγράφηκε: ${id} gate ${gate} → ${decision}. Εφαρμόζεται στην επόμενη εκτέλεση (ή τώρα με sync-approvals).`);
       return 0;
     }
-    case 'export':
-      throw new Error('Το export υλοποιείται στη Φάση 6.');
+    case 'export': {
+      const [id] = args;
+      if (!id) throw new Error('Χρήση: export <campaign-id> [--tool instantly|smartlead|lemlist]');
+      const tool = values.tool as 'instantly' | 'smartlead' | 'lemlist' | undefined;
+      if (tool && !['instantly', 'smartlead', 'lemlist'].includes(tool)) throw new Error('--tool: instantly | smartlead | lemlist');
+      const r = await runExport(ctx, id, { tool });
+      if (!r.gate.allowed) {
+        console.log(`⛔ Το export μπλοκάρεται για το ${id}:`);
+        for (const x of r.gate.reasons) console.log(`  - ${x}`);
+        return 2;
+      }
+      console.log(r.file ? `✓ ${r.rows} γραμμές → ${path.relative(ctx.ps.repoRoot, r.file)} (εκτός git)` : 'Τίποτα για export (όλα έχουν βγει ή είναι suppressed).');
+      console.log(`  suppressed τώρα: ${r.skippedSuppressed} · μένουν για επόμενο batch: ${r.remaining}`);
+      return 0;
+    }
+    case 'import-objection-registry': {
+      const [file] = args;
+      if (!file || !fs.existsSync(file)) throw new Error('Χρήση: import-objection-registry <αρχείο με ένα τηλέφωνο ανά γραμμή ή CSV>');
+      const phones = new Set<string>();
+      for (const m of fs.readFileSync(file, 'utf8').matchAll(/(?:\+30|0030)?[\s-]?[26]\d[\d\s-]{8,11}/g)) {
+        const p = phoneE164(m[0]);
+        if (p) phones.add(p);
+      }
+      const db = await openLeadDb(ctx);
+      const store = new LeadStore(db, ctx.now);
+      try {
+        await db.transaction(async () => {
+          for (const p of phones) await store.suppress('phone', p, 'μητρώο αντιρρήσεων άρθρου 11');
+          await store.setCursor('objection_registry', String(phones.size), false);
+        });
+      } finally {
+        await db.close();
+      }
+      console.log(`Φορτώθηκαν ${phones.size} τηλέφωνα στη suppression. Ισχύει για 30 ημέρες για τις λίστες κλήσεων.`);
+      return 0;
+    }
     case 'leads': {
       const [id] = args;
       const cell = ctx.config.matrix.cells.find((c) => c.id === id);

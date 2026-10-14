@@ -3,6 +3,7 @@ import type { FactoryContext } from './context.ts';
 import { gateNeedsOpening, openGateFor, writeFeedbackFile } from './gates.ts';
 import { pauseReason } from './killswitch.ts';
 import { publishCell, syncCellContent, unpublishCell } from './publish.ts';
+import { openLeadDb } from './leads/index.ts';
 import { acquireLock } from './lock.ts';
 import { sortCells, updateMatrixCells } from './matrix.ts';
 import { writeReview, type ReviewEntry } from './review.ts';
@@ -139,6 +140,7 @@ export async function syncApprovals(ctx: FactoryContext, all: Loaded[], report: 
     if (d.decision !== 'approved') writeFeedbackFile(ctx, l.task);
     if (l.task.state === 'published') publishCell(ctx, l.cell);
     if (l.task.state === 'rejected') unpublishCell(ctx, l.cell.id);
+    if (gate === 'campaign') await setCampaignStatus(ctx, l.cell.id, d.decision === 'approved' ? 'approved' : 'draft', d.by);
     persist(ctx, l.task);
     try {
       await ctx.approvals.closeGate(l.task, gate, d);
@@ -149,6 +151,19 @@ export async function syncApprovals(ctx: FactoryContext, all: Loaded[], report: 
     report.decisions.push({ cell: l.cell.id, gate, decision: d.decision, by: d.by });
   }
   return report;
+}
+
+/** Gate 4: οι καμπάνιες του κελιού που πέρασαν QA εγκρίνονται (ή γυρίζουν σε draft) με όνομα και ώρα. */
+async function setCampaignStatus(ctx: FactoryContext, cellId: string, status: 'approved' | 'draft', by: string): Promise<void> {
+  const db = await openLeadDb(ctx);
+  try {
+    await db.run(
+      "update campaigns set status = ?, approved_by = ?, approved_at = ? where cell_id = ? and status in ('ready', 'approved')",
+      [status, status === 'approved' ? by : null, status === 'approved' ? ctx.now().toISOString() : null, cellId],
+    );
+  } finally {
+    await db.close();
+  }
 }
 
 /** Ανοίγει gate issues που λείπουν (π.χ. αν απέτυχε το gh στην προηγούμενη εκτέλεση). */
@@ -186,7 +201,7 @@ export function selectNext(ctx: FactoryContext, all: Loaded[], opts: SelectOptio
     if (opts.done?.has(l.cell.id)) continue;
     if (isTerminal(l.task.state)) continue;
     const step = stepForState(l.task.state);
-    if (!step || !step.available) continue;
+    if (!step || !step.available || step.manual) continue;
     if ((l.task.attempts[step.name] ?? 0) >= max) {
       skipped?.push({ cell: l.cell.id, reason: `${step.name}: ${max} αποτυχημένες προσπάθειες` });
       continue;
@@ -318,6 +333,37 @@ export function runSyncContent(ctx: FactoryContext): Promise<RunReport> {
       if (changed.length) ctx.log(`↻ ${l.cell.id}: ${changed.join(', ')}`);
     }
   });
+}
+
+/**
+ * `factory -- export <campaign-id>`: compliance gate → αρχείο στο exports/ (εκτός git).
+ * Το πρώτο επιτυχημένο export περνά το κελί από campaign_approved σε exported.
+ */
+export async function runExport(
+  ctx: FactoryContext,
+  campaignId: string,
+  opts: { tool?: import('./campaigns/export.ts').EmailTool; txt?: import('./compliance/dns.ts').TxtResolver } = {},
+): Promise<import('./campaigns/export.ts').ExportResult> {
+  const { exportCampaign } = await import('./campaigns/export.ts');
+  const { LeadStore } = await import('./leads/store.ts');
+  let result!: import('./campaigns/export.ts').ExportResult;
+  await guarded(ctx, async (all) => {
+    const db = await openLeadDb(ctx);
+    try {
+      result = await exportCampaign(ctx, new LeadStore(db, ctx.now), campaignId, opts);
+    } finally {
+      await db.close();
+    }
+    if (result.file) {
+      const l = all.find((x) => campaignId.startsWith(`${x.cell.id}--`));
+      if (l && l.task.state === 'campaign_approved') {
+        applyTransition(l.task, 'exported', { kind: 'system', name: 'orchestrator' }, ctx.now(), { result: 'ok', note: `export ${campaignId}: ${result.rows}` });
+        persist(ctx, l.task);
+      }
+    }
+  });
+  if (!result) throw new Error('Παύση: το export δεν έτρεξε.');
+  return result;
 }
 
 /** Για το `status`: διαβάζει χωρίς lock και χωρίς να γράφει τίποτα. */

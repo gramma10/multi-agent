@@ -42,5 +42,7 @@ export interface StepDef {
   budget?: BudgetKey;
   /** false = δεν έχει υλοποιηθεί ακόμα σε αυτή τη φάση· το κελί περιμένει. */
   available: boolean;
+  /** true = δεν τρέχει ποτέ αυτόματα (run-night/next), μόνο με ρητή εντολή ανθρώπου. */
+  manual?: boolean;
   execute(ctx: FactoryContext, task: Task, cell: CellDef): Promise<StepResult>;
 }
