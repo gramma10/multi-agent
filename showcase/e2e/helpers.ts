@@ -1,4 +1,15 @@
 import { expect, type Page } from '@playwright/test';
+import published from '../content/published.json' with { type: 'json' };
+
+/** Τι έχει περάσει το Gate 3 (το γράφει ο orchestrator). Τα tests ελέγχουν και τις δύο καταστάσεις. */
+export const PUBLISHED = new Set<string>(published);
+
+/** Δημοσιευμένη σελίδα: χωρίς noindex. Πρόχειρη: noindex, για να μη μπει στη Google. */
+export async function expectIndexing(page: Page, isPublished: boolean) {
+  const robots = page.locator('meta[name="robots"]');
+  if (isPublished) await expect(robots).toHaveCount(0);
+  else await expect(robots).toHaveAttribute('content', /noindex/);
+}
 
 /** Κανένα οριζόντιο scroll στα 390px. */
 export async function expectNoHorizontalScroll(page: Page) {

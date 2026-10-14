@@ -59,9 +59,10 @@ channels:
 # Στοιχεία αποστολέα που μπαίνουν σε ΚΑΘΕ μήνυμα. Τα συμπληρώνουν οι ιδρυτές.
 sender:
   company: "Auragram"
-  people: ["Χρήστος", "Παναγιώτης"]
-  website: "{{TODO: https://auragram.gr}}"
-  address: "{{TODO: διεύθυνση έδρας}}"
+  people: ["Παναγιώτης Γραμματικού", "Χρήστος Αβραμίδης"]
+  website: "https://auragram.gr"
+  # Δεν υπάρχει γραφείο: χωρίς διεύθυνση η γραμμή παραλείπεται (D052). Ρώτα τον δικηγόρο αν χρειάζεται έδρα στα μηνύματα.
+  address: null
   unsubscribe_url: "{{TODO: https://auragram.gr/unsubscribe}}"
   booking_url: "{{TODO: Cal.com link για τον Χάρτη AI}}"
   demo_base_url: "{{TODO: https://demos.auragram.gr}}"

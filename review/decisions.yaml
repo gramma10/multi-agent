@@ -1,0 +1,64 @@
+# Αποφάσεις gates σε dry-run. Γράψε με: npm run factory -- decide <κελί> <approved|changes|rejected> --by <όνομα> [--comment "..."]
+- cell: kommotiria-booking
+  gate: idea
+  decision: approved
+  by: gramma10
+  at: 2026-10-14T21:01:04.384Z
+  comment: Έγκριση Gate 1 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
+  applied_at: 2026-10-14T21:01:06.870Z
+- cell: iatreia-support
+  gate: idea
+  decision: approved
+  by: gramma10
+  at: 2026-10-14T21:01:05.202Z
+  comment: Έγκριση Gate 1 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
+  applied_at: 2026-10-14T21:01:06.899Z
+- cell: xenodocheia-sales
+  gate: idea
+  decision: approved
+  by: gramma10
+  at: 2026-10-14T21:01:06.026Z
+  comment: Έγκριση Gate 1 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
+  applied_at: 2026-10-14T21:01:06.937Z
+- cell: kommotiria-booking
+  gate: demo
+  decision: approved
+  by: gramma10
+  at: 2026-10-14T21:06:18.093Z
+  comment: Έγκριση Gate 2 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
+  applied_at: 2026-10-14T21:06:20.794Z
+- cell: iatreia-support
+  gate: demo
+  decision: approved
+  by: gramma10
+  at: 2026-10-14T21:06:18.988Z
+  comment: Έγκριση Gate 2 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
+  applied_at: 2026-10-14T21:06:20.820Z
+- cell: xenodocheia-sales
+  gate: demo
+  decision: approved
+  by: gramma10
+  at: 2026-10-14T21:06:19.890Z
+  comment: Έγκριση Gate 2 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
+  applied_at: 2026-10-14T21:06:20.842Z
+- cell: kommotiria-booking
+  gate: publish
+  decision: approved
+  by: gramma10
+  at: 2026-10-14T21:15:50.926Z
+  comment: Έγκριση Gate 3 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
+  applied_at: 2026-10-14T21:15:53.646Z
+- cell: iatreia-support
+  gate: publish
+  decision: approved
+  by: gramma10
+  at: 2026-10-14T21:15:51.808Z
+  comment: Έγκριση Gate 3 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
+  applied_at: 2026-10-14T21:15:53.677Z
+- cell: xenodocheia-sales
+  gate: publish
+  decision: approved
+  by: gramma10
+  at: 2026-10-14T21:15:52.744Z
+  comment: Έγκριση Gate 3 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
+  applied_at: 2026-10-14T21:15:53.706Z

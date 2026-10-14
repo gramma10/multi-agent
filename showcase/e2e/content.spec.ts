@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectNoHorizontalScroll } from './helpers';
+import { expectIndexing, expectNoHorizontalScroll, PUBLISHED } from './helpers';
 
 test('σελίδα demo: κάτω από το demo φαίνεται το κείμενο του page.md, χωρίς raw HTML', async ({ page }) => {
   await page.goto('/demos/iatreia-support');
@@ -29,7 +29,8 @@ test('hub: links προς τις σελίδες κλάδων', async ({ page }) 
   await page.goto('/');
   await page.getByRole('link', { name: /Ιατρεία και οδοντιατρεία →/ }).click();
   await expect(page).toHaveURL(/\/lyseis\/iatreia$/);
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/); // κανένα δημοσιευμένο ακόμα
+  // Η σελίδα κλάδου μπαίνει στη Google μόλις δημοσιευτεί ένα demo του κλάδου.
+  await expectIndexing(page, PUBLISHED.has('iatreia-support'));
 });
 
 test('άγνωστος κλάδος → 404', async ({ page }) => {

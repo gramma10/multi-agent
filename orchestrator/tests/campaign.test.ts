@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { buildCampaigns } from '../src/campaigns/build.ts';
 import { exportCampaign } from '../src/campaigns/export.ts';
 import { maskName, runCampaignQa, sampleOf, writeQaReports } from '../src/campaigns/qa-run.ts';
-import { evalCondition, renderCall, renderDraft, renderEmail, type LeadView, type RenderContext } from '../src/campaigns/render.ts';
+import { evalCondition, renderCall, renderDraft, renderEmail, senderBlock, type LeadView, type RenderContext } from '../src/campaigns/render.ts';
 import { loadTemplates } from '../src/campaigns/template.ts';
 import { checkSendingDomains } from '../src/compliance/dns.ts';
 import { complianceGate, emailDailyLimit } from '../src/compliance/gate.ts';
@@ -349,4 +349,11 @@ describe('τα πραγματικά templates των 3 κελιών', () => {
       }
     });
   }
+});
+
+describe('στοιχεία αποστολέα', () => {
+  it('χωρίς διεύθυνση γραφείου η γραμμή παραλείπεται (D052)', () => {
+    expect(senderBlock({ ...rc.sender, address: null })).toBe('Χρήστος & Παναγιώτης · Auragram\nhttps://auragram.example');
+    expect(senderBlock(rc.sender)).toBe('Χρήστος & Παναγιώτης · Auragram\nhttps://auragram.example · Αθήνα');
+  });
 });

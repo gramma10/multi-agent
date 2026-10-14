@@ -1,3 +1,9 @@
 {"ts":"2026-10-14T19:18:36.068Z","agent":"scout","cell":"kommotiria-booking","worker":"prepared","model":"sonnet","duration_ms":0,"exit_reason":"ok","usage":null}
 {"ts":"2026-10-14T19:18:36.896Z","agent":"scout","cell":"iatreia-support","worker":"prepared","model":"sonnet","duration_ms":0,"exit_reason":"ok","usage":null}
 {"ts":"2026-10-14T19:18:37.768Z","agent":"scout","cell":"xenodocheia-sales","worker":"prepared","model":"sonnet","duration_ms":0,"exit_reason":"ok","usage":null}
+{"ts":"2026-10-14T21:01:14.689Z","agent":"builder","cell":"kommotiria-booking","worker":"prepared","model":"opus","duration_ms":0,"exit_reason":"ok","usage":null}
+{"ts":"2026-10-14T21:02:02.346Z","agent":"builder","cell":"iatreia-support","worker":"prepared","model":"opus","duration_ms":0,"exit_reason":"ok","usage":null}
+{"ts":"2026-10-14T21:02:27.618Z","agent":"builder","cell":"xenodocheia-sales","worker":"prepared","model":"opus","duration_ms":0,"exit_reason":"ok","usage":null}
+{"ts":"2026-10-14T21:06:21.833Z","agent":"content","cell":"kommotiria-booking","worker":"prepared","model":"sonnet","duration_ms":0,"exit_reason":"ok","usage":null}
+{"ts":"2026-10-14T21:06:22.872Z","agent":"content","cell":"iatreia-support","worker":"prepared","model":"sonnet","duration_ms":0,"exit_reason":"ok","usage":null}
+{"ts":"2026-10-14T21:06:23.832Z","agent":"content","cell":"xenodocheia-sales","worker":"prepared","model":"sonnet","duration_ms":0,"exit_reason":"ok","usage":null}
