@@ -63,3 +63,38 @@
 **2026-10-14.** Πρόσθεσα `config/gates.yaml` (approvers, labels, checklist ανά gate), που δεν υπάρχει στην §3.
 **Γιατί:** Τα checklists των issues και η λίστα approvers πρέπει να αλλάζουν χωρίς αλλαγή κώδικα.
 **Αλλαγή:** στο ίδιο αρχείο.
+
+### D013: Το dry-run γράφει σε sandbox `.dry-run/`
+**2026-10-14.** Με `--dry-run` το state (pipeline/, review/, reports/, αντίγραφο του matrix) γράφεται στο `.dry-run/`, που το αγνοεί το git. Config, agents και compliance διαβάζονται από το πραγματικό repo.
+**Γιατί:** Τα fixtures δεν πρέπει ποτέ να μπουν στο πραγματικό `pipeline/` ή να αλλάξουν το `status` στο `matrix.yaml`.
+**Αλλαγή:** `src/paths.ts` (`DRY_RUN_DIR`).
+
+### D014: Ελάχιστα δικαιώματα επιβάλλονται από τον orchestrator (scope guard)
+**2026-10-14.** Πέρα από τα `--allowedTools` του CLI, ο orchestrator κρατά στιγμιότυπο των αρχείων πριν από κάθε worker. Ό,τι αλλάξει εκτός του write scope αναιρείται και το βήμα αποτυγχάνει. Τα `task.yaml`, `review/`, `config/`, `compliance/`, `agents/`, `CLAUDE.md`, `.github/` επαναφέρονται πάντα, ακόμα κι αν κάποιο scope τα καλύπτει.
+**Γιατί:** Το Codex και το Gemini δεν έχουν το ίδιο σύστημα δικαιωμάτων με το Claude Code. Ο κανόνας «κανένας agent δεν περνά gate» πρέπει να ισχύει ανεξάρτητα από τον worker.
+**Αλλαγή:** `src/scope-guard.ts` (`PROTECTED_GLOBS`) και το `writeScope` κάθε βήματος.
+
+### D015: Fallback μόνο για όρια χρήσης και για CLI που λείπει
+**2026-10-14.** Ο fallback worker τρέχει μόνο αν ο primary είναι σε cooldown, χτύπησε όριο ή δεν είναι εγκατεστημένος. Σε κανονικό σφάλμα ή timeout το βήμα αποτυγχάνει καθαρά και ξαναδοκιμάζεται την επόμενη νύχτα (μέχρι `max_step_attempts`). Κάθε κελί αποτυγχάνει το πολύ μία φορά ανά νύχτα.
+**Γιατί:** «Ποτέ loop επαναλήψεων» (§5.3). Ένα σφάλμα στο prompt ή στο output δεν διορθώνεται αλλάζοντας μοντέλο· θέλει άνθρωπο.
+**Αλλαγή:** `src/workers/pool.ts`.
+
+### D016: `changes` και στο Gate 1
+**2026-10-14.** Στο Gate 1 επιτρέπεται και `changes` (→ `scouting` με feedback), όχι μόνο `approved` / `rejected`.
+**Γιατί:** Συχνά η ιδέα είναι σωστή αλλά θέλει άλλη γωνία. Η απόρριψη και επανεκκίνηση χάνει το ιστορικό.
+**Αλλαγή:** `GATE_OUTCOMES` στο `src/state/machine.ts`.
+
+### D017: Lock σε αρχείο, πέρα από το concurrency group
+**2026-10-14.** Κάθε εντολή που γράφει παίρνει lock (`.factory.lock`). Ένα lock παλαιότερο από 6 ώρες θεωρείται ορφανό.
+**Γιατί:** Τα scheduled routines και οι τοπικές εκτελέσεις δεν έχουν concurrency group του GitHub Actions.
+**Αλλαγή:** `src/lock.ts`.
+
+### D018: Prompt από stdin, κανόνες από αρχεία
+**2026-10-14.** Το prompt περνά στο CLI από stdin (όχι argv) και είναι κοντό: λέει στον agent ποια αρχεία να διαβάσει (`CLAUDE.md`, `config/brand.md`, `agents/<agent>.md`, feedback) και ποια να γράψει. Οι κανόνες δεν αντιγράφονται μέσα στο prompt.
+**Γιατί:** Μία πηγή αλήθειας για όλους τους workers. Χωρίς όρια μήκους εντολής, και το prompt δεν φαίνεται στη λίστα διεργασιών.
+**Αλλαγή:** `src/prompt.ts`.
+
+### D019: Χωρίς approvers, κανείς δεν περνά gate στο GitHub
+**2026-10-14.** Αν το `config/gates.yaml` → `approvers` έχει μόνο placeholders (`{{TODO}}`), ο adapter GitHub δεν δέχεται καμία απόφαση.
+**Γιατί:** Ασφαλής προεπιλογή. Καλύτερα να περιμένει κάτι απ' ό,τι να περάσει από λάθος λογαριασμό.
+**Αλλαγή:** συμπληρώστε τα GitHub logins.
