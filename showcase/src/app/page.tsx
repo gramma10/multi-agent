@@ -1,6 +1,8 @@
 import { HubDemos, type HubCard } from '@/components/HubDemos';
 import styles from '@/components/hub.module.css';
-import { isPublished, serviceName, verticalName, visibleDemos } from '@/lib/site';
+import Link from 'next/link';
+import { verticalIntro } from '@/lib/content';
+import { isPublished, serviceName, verticalName, visibleDemos, visibleVerticals } from '@/lib/site';
 
 export default function Hub() {
   const cards: HubCard[] = visibleDemos().map((d) => ({
@@ -43,6 +45,21 @@ export default function Hub() {
           </div>
         )}
       </section>
+
+      {visibleVerticals().some((v) => verticalIntro(v)) && (
+        <section>
+          <h2>Λύσεις ανά κλάδο</h2>
+          <ul className={styles.verticalLinks}>
+            {visibleVerticals()
+              .filter((v) => verticalIntro(v))
+              .map((v) => (
+                <li key={v}>
+                  <Link href={`/lyseis/${v}`}>{verticalName(v)} →</Link>
+                </li>
+              ))}
+          </ul>
+        </section>
+      )}
 
       <section className={styles.how}>
         <h2>Πώς δουλεύει</h2>

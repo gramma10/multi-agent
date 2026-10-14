@@ -1,5 +1,4 @@
----
-title: "{{cell.label}}"
----
+FIXTURE (dry-run) για το {{cell.id}}.
 
-# FIXTURE (dry-run): linkedin για {{cell.id}}
+Demo: {{demo_url}}
+Χάρτης AI: {{booking_url}}

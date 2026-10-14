@@ -37,5 +37,15 @@ export function serviceName(id: string): string {
   return catalog.services.find((s) => s.id === id)?.name ?? id;
 }
 
+/** Κλάδοι με τουλάχιστον ένα ορατό demo (δημοσιευμένο, ή πρόχειρο σε preview). */
+export function visibleVerticals(): string[] {
+  return [...new Set(visibleDemos().map((d) => d.vertical))];
+}
+
+/** Κλάδοι με τουλάχιστον ένα δημοσιευμένο demo (για sitemap και index). */
+export function publishedVerticals(): string[] {
+  return [...new Set(DEMOS.filter((d) => isPublished(d.slug)).map((d) => d.vertical))];
+}
+
 export const VERTICALS = catalog.verticals;
 export const SERVICES = catalog.services;

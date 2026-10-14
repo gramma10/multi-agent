@@ -1,9 +1,11 @@
+import { gzipSync } from 'node:zlib';
 import { expect, test } from '@playwright/test';
 
 /**
  * Budget απόδοσης (αντί για Lighthouse, που θέλει δίκτυο και ξεχωριστό Chrome):
  *  - LCP < 1.5s (στόχος του brief) σε τοπικό production server
- *  - JavaScript που κατεβαίνει στην πρώτη φόρτωση < 250 KB (συμπιεσμένο)
+ *  - JavaScript της πρώτης φόρτωσης (μέχρι το load event, χωρίς prefetch άλλων σελίδων)
+ *    < 200 KB μετά από gzip (σήμερα όλα τα chunks μαζί είναι ~186 KB). Μετριέται με gzip στο test, ώστε να μην εξαρτάται από τον server.
  * Τοπικά δεν υπάρχει καθυστέρηση δικτύου, οπότε αυτό πιάνει μόνο παλινδρομήσεις στο βάρος
  * της σελίδας. Ο πραγματικός έλεγχος στο κινητό γίνεται με Lighthouse/PageSpeed στο preview.
  */
@@ -11,14 +13,15 @@ const PAGES = ['/', '/demos/kommotiria-booking', '/demos/iatreia-support', '/dem
 
 for (const path of PAGES) {
   test(`budget: ${path}`, async ({ page }) => {
-    let jsBytes = 0;
-    page.on('response', async (r) => {
-      if (r.request().resourceType() === 'script') {
-        const len = Number(r.headers()['content-length'] ?? 0);
-        jsBytes += len || (await r.body().catch(() => Buffer.alloc(0))).length;
-      }
+    let loaded = false;
+    const pending: Promise<number>[] = [];
+    page.on('response', (r) => {
+      if (loaded || r.request().resourceType() !== 'script') return;
+      pending.push(r.body().then((b) => gzipSync(b).length, () => 0));
     });
-    await page.goto(path, { waitUntil: 'networkidle' });
+    await page.goto(path, { waitUntil: 'load' });
+    loaded = true;
+    const jsBytes = (await Promise.all(pending)).reduce((a, b) => a + b, 0);
     const lcp = await page.evaluate(
       () =>
         new Promise<number>((resolve) => {
@@ -31,6 +34,6 @@ for (const path of PAGES) {
     );
     expect(lcp).toBeGreaterThan(0);
     expect(lcp).toBeLessThan(1500);
-    expect(jsBytes).toBeLessThan(250 * 1024);
+    expect(jsBytes).toBeLessThan(200 * 1024);
   });
 }

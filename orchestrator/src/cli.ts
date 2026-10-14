@@ -3,7 +3,7 @@ import { parseArgs } from 'node:util';
 import { DryRunApprovals } from './approvals/dry-run.ts';
 import { cellLabel, GATE_IDS } from './config.ts';
 import { createContext } from './context.ts';
-import { runCellStep, runMorning, runNext, runNight, runSyncApprovals, statusRows, type RunReport } from './runner.ts';
+import { runCellStep, runMorning, runNext, runNight, runSyncApprovals, runSyncContent, statusRows, type RunReport } from './runner.ts';
 import { gateForState } from './state/machine.ts';
 
 const HELP = `Auragram Showcase Factory
@@ -15,6 +15,7 @@ const HELP = `Auragram Showcase Factory
   run-night                    πλήρης βραδινός κύκλος
   run-morning                  εγκρίσεις, issues, REVIEW.md
   sync-approvals               διαβάζει μόνο τις αποφάσεις στα gates
+  sync-content                 αντιγράφει περιεχόμενο στη showcase ως πρόχειρο (δεν δημοσιεύει)
   cell <id> <βήμα>             χειροκίνητη εκτέλεση βήματος (scout|build|content|...)
   decide <id> <approved|changes|rejected> --by <όνομα> [--comment "..."]
                                απόφαση gate σε dry-run (στην κανονική λειτουργία: labels στο GitHub)
@@ -94,6 +95,9 @@ async function main(argv: string[]): Promise<number> {
       return 0;
     case 'sync-approvals':
       printReport(await runSyncApprovals(ctx));
+      return 0;
+    case 'sync-content':
+      printReport(await runSyncContent(ctx));
       return 0;
     case 'cell': {
       const [id, step] = args;

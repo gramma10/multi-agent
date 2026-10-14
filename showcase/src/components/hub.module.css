@@ -93,3 +93,21 @@
 .how ol {
   padding-left: 1.2rem;
 }
+
+.verticalLinks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.verticalLinks a {
+  display: block;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  text-decoration: none;
+  font-weight: 600;
+}

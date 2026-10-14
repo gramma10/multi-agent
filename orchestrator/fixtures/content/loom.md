@@ -1,5 +1,5 @@
----
-title: "{{cell.label}}"
----
+# FIXTURE (dry-run): Loom για {{cell.id}}
 
-# FIXTURE (dry-run): loom για {{cell.id}}
+| Χρόνος | Τι δείχνεις | Τι λες |
+|---|---|---|
+| 0–90″ | fixture | fixture |

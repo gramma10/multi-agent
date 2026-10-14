@@ -2,6 +2,7 @@ import type { CellDef } from './config.ts';
 import type { FactoryContext } from './context.ts';
 import { gateNeedsOpening, openGateFor, writeFeedbackFile } from './gates.ts';
 import { pauseReason } from './killswitch.ts';
+import { publishCell, syncCellContent, unpublishCell } from './publish.ts';
 import { acquireLock } from './lock.ts';
 import { sortCells, updateMatrixCells } from './matrix.ts';
 import { writeReview, type ReviewEntry } from './review.ts';
@@ -125,6 +126,8 @@ export async function syncApprovals(ctx: FactoryContext, all: Loaded[], report: 
       note: d.comments.join(' | ').slice(0, 500) || undefined,
     });
     if (d.decision !== 'approved') writeFeedbackFile(ctx, l.task);
+    if (l.task.state === 'published') publishCell(ctx, l.cell);
+    if (l.task.state === 'rejected') unpublishCell(ctx, l.cell.id);
     persist(ctx, l.task);
     try {
       await ctx.approvals.closeGate(l.task, gate, d);
@@ -289,6 +292,19 @@ export function runCellStep(ctx: FactoryContext, cellId: string, stepName: strin
       );
     }
     report.steps.push(await runStep(ctx, l, step));
+  });
+}
+
+/**
+ * `factory -- sync-content`: αντιγράφει στη showcase το περιεχόμενο κάθε κελιού που έχει content
+ * (ως πρόχειρο για preview). ΔΕΝ δημοσιεύει τίποτα: αυτό γίνεται μόνο στο Gate 3.
+ */
+export function runSyncContent(ctx: FactoryContext): Promise<RunReport> {
+  return guarded(ctx, async (all) => {
+    for (const l of all) {
+      const changed = syncCellContent(ctx, l.cell);
+      if (changed.length) ctx.log(`↻ ${l.cell.id}: ${changed.join(', ')}`);
+    }
   });
 }
 

@@ -7,11 +7,38 @@
 | 1. Σκελετός και κανόνες | ✅ |
 | 2. Orchestrator | ✅ |
 | 3. Showcase app + 3 demos | ✅ (περιμένει Gate 1) |
-| 4. Content pipeline | ⏳ |
-| 5. Leads σε όγκο | — |
+| 4. Content pipeline | ✅ (περιμένει Gates 1–3) |
+| 5. Leads σε όγκο | ⏳ |
 | 6. Campaigns + QA + export | — |
 | 7. Tracker και βρόχος μάθησης | — |
 | 8. Χρονοπρογραμματισμός και παράδοση | — |
+
+---
+
+## Φάση 4: Content pipeline (2026-10-14)
+
+### Τι ολοκληρώθηκε
+- **Περιεχόμενο για τα 3 demos** στο `pipeline/<slug>/content/`: `page.md` (σελίδα demo), `reel.md` (3 scripts για Reels με hook στα 2″, σκηνές, κείμενο οθόνης, CTA), `loom.md` (walkthrough 90″), `linkedin.md`, `seo-section.md`. Και εισαγωγές κλάδων στο `pipeline/_verticals/<κλάδος>/intro.md` για κομμωτήρια, ιατρεία, ξενοδοχεία. Γράφτηκαν στη session (ρόλος Content agent), όπως τα demos (D020).
+- **Έλεγχος περιεχομένου** στον orchestrator (D028): μορφή κάθε αρχείου, μαύρη λίστα του brand, φράσεις που υπονοούν πελάτες, νούμερα χωρίς πηγή. Το βήμα content αποτυγχάνει αν δεν περνά.
+- **Δημοσίευση**: στο Gate 3 (approved) ο orchestrator γράφει το `showcase/content/published.json`· πριν από αυτό το περιεχόμενο φαίνεται μόνο ως πρόχειρο σε preview (D026). Νέα εντολή `factory -- sync-content`. Το issue του Gate 3 περιέχει τη σελίδα και τα Reels.
+- **Showcase**: κάτω από κάθε demo το κείμενο του `page.md`· σελίδες `/lyseis/<κλάδος>` (εισαγωγή + ενότητα ανά demo + link + CTA), μόνο για κλάδους με ορατά demos, χωρίς σελίδες ανά πόλη· links κλάδων στο hub· sitemap με ό,τι είναι δημοσιευμένο. Markdown χωρίς raw HTML (D027).
+
+### Τι ελέγχθηκε και πώς
+- `cd orchestrator && npm run check`: **77/77**. Νέα: η μαύρη λίστα διαβάζεται από το brand.md, εντοπισμός φράσεων/νούμερων, τα 3 πραγματικά packs και οι 3 εισαγωγές περνούν, ένα κακό pack πιάνεται σε 11 σημεία, **πλήρης ροή dry-run idea → demo → content → Gate 3 → published.json**, content με «οι πελάτες μας… 300%» δεν φτάνει ποτέ στο Gate 3 ούτε στη showcase.
+- `cd showcase && npx playwright test`: **24/24** (νέα: κείμενο σελίδας demo, 3 σελίδες κλάδου, links από το hub, 404 για άγνωστο κλάδο). 3 συνεχόμενα runs πράσινα.
+- Βρέθηκε και διορθώθηκε: το budget JS ταλάντευε γύρω από το όριο επειδή μετρούσε ασυμπίεστα και μαζί το prefetch άλλων σελίδων. Τώρα μετρά μόνο την πρώτη φόρτωση, με gzip, με όριο 200 KB (σήμερα όλα τα chunks μαζί ~186 KB).
+- Χειροκίνητα, σε production build **χωρίς** drafts: με κενό `published.json` το hub δείχνει «Τα πρώτα demos έρχονται», οι σελίδες κλάδων δίνουν 404, τα demos είναι noindex, το sitemap έχει μόνο την αρχική. Με `["kommotiria-booking"]`: 1 κάρτα, `/lyseis/kommotiria` 200, `/lyseis/iatreia` 404, sitemap με demo και κλάδο. Το `/components` δίνει 404 και στις δύο.
+
+### Τι ΔΕΝ ελέγχθηκε
+- Τα 3 κελιά είναι ακόμα στο Gate 1, οπότε στην πράξη δεν έχει δημοσιευτεί τίποτα. Η δημοσίευση ελέγχθηκε σε dry-run και με το χειροκίνητο build παραπάνω.
+- Τα Reel scripts δεν έχουν «δοκιμαστεί στην κάμερα». Θέλουν το μάτι σας για το αν ακούγονται φυσικά από εσάς.
+- Το κείμενο των σελίδων δεν έχει ελεγχθεί από native ομιλητή πέρα από εμένα.
+
+### Αποφάσεις
+D026–D028: πρόχειρο πριν, δημόσιο μετά το Gate 3· markdown χωρίς HTML· ντετερμινιστικός έλεγχος περιεχομένου.
+
+### Τι χρειάζομαι από τους ιδρυτές
+- Gates 1 → 2 → 3 για τα 3 κελιά. Με `--worker prepared` τα βήματα build και content περνούν αμέσως από τους ελέγχους, χωρίς να ξαναγραφτεί τίποτα.
 
 ---
 
@@ -30,7 +57,7 @@
 
 ### Τι ελέγχθηκε και πώς
 - `cd showcase && npm run typecheck && npm run lint && npm run build`: ok.
-- `npx playwright test`: **18/18** σε 390×844. Τα 3 demos τρέχουν σε πραγματική ταχύτητα και ολοκληρώνονται κάτω από 60″ (assert), με badge, ΠΡΙΝ→ΜΕΤΑ και CTA. Επίσης: hub και φίλτρα, noindex στα πρόχειρα, 404, live AI κλειστό χωρίς κλειδί, τα 2 components χωρίς demo, budget απόδοσης (LCP < 1.5s, JS < 250 KB) σε 4 σελίδες, κανένα οριζόντιο scroll.
+- `npx playwright test`: **18/18** σε 390×844. Τα 3 demos τρέχουν σε πραγματική ταχύτητα και ολοκληρώνονται κάτω από 60″ (assert), με badge, ΠΡΙΝ→ΜΕΤΑ και CTA. Επίσης: hub και φίλτρα, noindex στα πρόχειρα, 404, live AI κλειστό χωρίς κλειδί, τα 2 components χωρίς demo, budget απόδοσης (LCP < 1.5s, JS < 200 KB gzip) σε 4 σελίδες, κανένα οριζόντιο scroll.
 - Screenshots στα 390px: βρέθηκε και διορθώθηκε ότι οι μεγάλες επιλογές στο chat κόβονταν δεξιά.
 - `cd orchestrator && npm run check`: **69/69** (νέα: δημοσίευση σε branch με πραγματικό git και bare remote, άρνηση push στο main, builder που αποτυγχάνει αν αποτύχει το Playwright, worker prepared, μεταφορά gates σε GitHub).
 - `npm run factory -- cell <id> scout --worker prepared` για τα 3 κελιά: βαθμολογίες 8, 8, 9/10, 5 πηγές το καθένα.

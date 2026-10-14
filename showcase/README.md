@@ -17,9 +17,11 @@ npx playwright test         # build + όλα τα tests σε κινητό 390×8
 |---|---|
 | `/` | hub: όλα τα **δημοσιευμένα** demos, φίλτρα ανά κλάδο και υπηρεσία, CTA «Κλείσε τον Χάρτη AI» |
 | `/demos/<slug>` | το demo. Υπάρχει για κάθε demo στον κώδικα (για έλεγχο στο Gate 2), αλλά είναι `noindex` και σημαδεμένο «Πρόχειρο» μέχρι το Gate 3 |
-| `/lyseis/<klados>` | SEO σελίδα κλάδου (Φάση 4) |
+| `/lyseis/<klados>` | SEO σελίδα κλάδου: εισαγωγή + ενότητα ανά demo. Μόνο για κλάδους με ορατά demos |
 | `/api/live` | live AI, κλειστό αν δεν υπάρχουν `ANTHROPIC_API_KEY` και `LIVE_AI_MODEL` |
 | `/components` | κατάλογος κοινών components με παραδείγματα, μόνο με `SHOWCASE_SHOW_DRAFTS=1` |
+
+Το κείμενο κάτω από κάθε demo και οι σελίδες κλάδων έρχονται από το `content/` (`demos/<slug>.md`, `seo/<κλάδος>/`), που το γεμίζει ο orchestrator από το `pipeline/`. Raw HTML στο markdown πετιέται.
 
 Ποια demos είναι δημοσιευμένα το λέει το `content/published.json`, που το γράφει ο orchestrator όταν περάσει το Gate 3. Με `SHOWCASE_SHOW_DRAFTS=1` το hub δείχνει και τα πρόχειρα (για preview και tests).
 
