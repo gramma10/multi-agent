@@ -35,3 +35,5 @@ guards:
   max_bounce_rate: 0.03        # πάνω από 3% η καμπάνια παγώνει
   max_spam_rate: 0.001         # πάνω από 0.1% η καμπάνια παγώνει
   min_contacts_before_judging: 200   # πριν από τόσες επαφές δεν πέφτει priority για «καμία απόκριση»
+  min_sent_before_freeze: 50   # πριν από τόσες αποστολές δεν κρίνεται bounce/spam (1 στα 3 δεν λέει τίποτα)
+  max_priority_change_per_week: 15   # ±, ώστε μια τυχαία εβδομάδα να μη γυρίζει όλο τον πίνακα

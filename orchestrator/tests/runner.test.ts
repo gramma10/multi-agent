@@ -201,7 +201,7 @@ describe('cell <id> <step>', () => {
     await runCellStep(ctx, 'iatreia-support', 'scout');
     expect(readTask(repo, 'iatreia-support').state).toBe('brief_ready');
     await expect(runCellStep(ctx, 'nope', 'scout')).rejects.toThrow(/Άγνωστο κελί/);
-    await expect(runCellStep(ctx, 'iatreia-support', 'track')).rejects.toThrow(/δεν έχει υλοποιηθεί/);
+    await expect(runCellStep(ctx, 'iatreia-support', 'track')).rejects.toThrow(/τρέχει από: exported, tracking/);
   });
 
   it('status δείχνει όλα τα κελιά με το επόμενο βήμα', () => {

@@ -44,5 +44,7 @@ export interface StepDef {
   available: boolean;
   /** true = δεν τρέχει ποτέ αυτόματα (run-night/next), μόνο με ρητή εντολή ανθρώπου. */
   manual?: boolean;
+  /** true = βήμα παρακολούθησης που ξανατρέχει κάθε νύχτα· διαλέγεται μόνο αφού δεν μένει άλλη δουλειά. */
+  background?: boolean;
   execute(ctx: FactoryContext, task: Task, cell: CellDef): Promise<StepResult>;
 }

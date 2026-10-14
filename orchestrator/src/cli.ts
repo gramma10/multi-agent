@@ -3,7 +3,13 @@ import { parseArgs } from 'node:util';
 import { DryRunApprovals } from './approvals/dry-run.ts';
 import { cellLabel, GATE_IDS } from './config.ts';
 import { createContext } from './context.ts';
-import { runCellStep, runExport, runMorning, runNext, runNight, runSyncApprovals, runSyncContent, statusRows, type RunReport } from './runner.ts';
+import { runCellStep, runExport, runMorning, runNext, runNight, runSyncApprovals, runSyncContent, runWeeklyReport, statusRows, type RunReport } from './runner.ts';
+import { parseCalcomCsv, parseToolCsv, importEvents, type ImportSummary, type RawEvent } from './tracker/events.ts';
+import { fetchCalcomBookings } from './tracker/calcom.ts';
+import { unfreezeCampaign } from './tracker/guards.ts';
+import { simulateEvents } from './tracker/simulate.ts';
+import { previousWeek } from './tracker/week.ts';
+import { fetchHttp } from './leads/http.ts';
 import { phoneE164 } from './leads/normalize.ts';
 import { gateForState } from './state/machine.ts';
 import fs from 'node:fs';
@@ -32,6 +38,19 @@ const HELP = `Auragram Showcase Factory
                                Δεν στέλνει τίποτα: γράφει αρχείο στο exports/ (εκτός git)
   import-objection-registry <αρχείο>
                                φορτώνει το μητρώο αντιρρήσεων (άρθρο 11) στη suppression (τηλέφωνα)
+
+Tracker (αποτελέσματα, μάθηση):
+  track-import <αρχείο.csv> --source instantly|smartlead|lemlist|calcom [--campaign <id>]
+                               events από το εργαλείο αποστολής ή κρατήσεις Cal.com. Διαγραφές και
+                               spam μπαίνουν αμέσως στη suppression. Idempotent: το ίδιο αρχείο 2 φορές = 1
+  track-calcom [--since 2026-10-01]
+                               κρατήσεις από το Cal.com API (CAL_API_KEY στο περιβάλλον)
+  weekly [--week 2026-W42]     μετρικές, πάγωμα, αλλαγές priority, reports/YYYY-WW.md (προεπιλογή: η προηγούμενη εβδομάδα)
+  record <pilot|call> <κελί> --by <όνομα> [--comment "…"]
+                               χειροκίνητη καταγραφή pilot ή κλήσης που κλείστηκε εκτός Cal.com
+  unfreeze <campaign-id> --by <όνομα>
+                               ξεπάγωμα καμπάνιας (μόνο άνθρωπος, αφού λυθεί το πρόβλημα)
+  track-simulate <campaign-id> μόνο σε --dry-run: συνθετικά events για όσους βγήκαν σε export
 
 Leads (τα δεδομένα ζουν μόνο στη βάση, ποτέ στο git):
   leads <id> [--city Αθήνα] [--limit 50]
@@ -73,6 +92,10 @@ async function main(argv: string[]): Promise<number> {
       limit: { type: 'string' },
       reason: { type: 'string' },
       tool: { type: 'string' },
+      source: { type: 'string' },
+      campaign: { type: 'string' },
+      since: { type: 'string' },
+      week: { type: 'string' },
       help: { type: 'boolean', short: 'h', default: false },
     },
   });
@@ -181,6 +204,95 @@ async function main(argv: string[]): Promise<number> {
         await db.close();
       }
       console.log(`Φορτώθηκαν ${phones.size} τηλέφωνα στη suppression. Ισχύει για 30 ημέρες για τις λίστες κλήσεων.`);
+      return 0;
+    }
+    case 'track-import':
+    case 'track-calcom':
+    case 'track-simulate': {
+      let raw: RawEvent[] = [];
+      let ignored = 0;
+      const db = await openLeadDb(ctx);
+      const store = new LeadStore(db, ctx.now);
+      try {
+        if (cmd === 'track-import') {
+          const [file] = args;
+          const source = values.source ?? '';
+          if (!file || !fs.existsSync(file) || !['instantly', 'smartlead', 'lemlist', 'calcom'].includes(source)) {
+            throw new Error('Χρήση: track-import <αρχείο.csv> --source instantly|smartlead|lemlist|calcom [--campaign <id>]');
+          }
+          const text = fs.readFileSync(file, 'utf8');
+          ({ events: raw, ignored } = source === 'calcom' ? parseCalcomCsv(text) : parseToolCsv(text, source));
+          if (values.campaign) for (const e of raw) e.campaignId ??= values.campaign;
+        } else if (cmd === 'track-calcom') {
+          const key = ctx.env.CAL_API_KEY;
+          const since = new Date(values.since ?? new Date(ctx.now().getTime() - 14 * 86_400_000).toISOString());
+          if (dryRun) {
+            console.log('dry-run: δεν καλείται το Cal.com (καμία κράτηση).');
+          } else {
+            if (!key) throw new Error('Λείπει το CAL_API_KEY στο περιβάλλον.');
+            raw = await fetchCalcomBookings(fetchHttp, key, since);
+          }
+        } else {
+          if (!dryRun) throw new Error('Το track-simulate τρέχει μόνο με --dry-run.');
+          const [id] = args;
+          if (!id) throw new Error('Χρήση: track-simulate <campaign-id> --dry-run');
+          if (!(await db.get('select id from campaigns where id = ?', [id]))) throw new Error(`Άγνωστη καμπάνια «${id}»`);
+          const sim = await simulateEvents(store, id, ctx.now());
+          const dir = path.join(ctx.ps.stateRoot, 'exports', 'simulated');
+          fs.mkdirSync(dir, { recursive: true });
+          fs.writeFileSync(path.join(dir, `${id}-events.csv`), sim.toolCsv);
+          fs.writeFileSync(path.join(dir, `${id}-calcom.csv`), sim.calcomCsv);
+          const a = parseToolCsv(sim.toolCsv, 'instantly');
+          const b = parseCalcomCsv(sim.calcomCsv);
+          raw = [...a.events, ...b.events];
+          ignored = a.ignored + b.ignored;
+        }
+        const s: ImportSummary = await importEvents(ctx, store, raw);
+        console.log(`Διαβάστηκαν ${s.read} events (${ignored} γραμμές αγνοήθηκαν). Νέα: ${s.imported}, ήδη υπήρχαν: ${s.duplicates}, χωρίς ταίριασμα: ${s.unmatched}.`);
+        console.log(`Ανά τύπο: ${Object.entries(s.byType).map(([k, v]) => `${k} ${v}`).join(', ') || '—'}`);
+        if (s.suppressed) console.log(`Στη suppression (διαγραφές, spam, hard bounces): ${s.suppressed}.`);
+      } finally {
+        await db.close();
+      }
+      return 0;
+    }
+    case 'weekly': {
+      const week = values.week ?? previousWeek(ctx.now());
+      const r = await runWeeklyReport(ctx, week);
+      console.log(`Αναφορά: ${path.relative(ctx.ps.repoRoot, r.file)}`);
+      for (const f of r.frozen) console.log(`  🧊 πάγωσε: ${f.campaignId} (${f.reasons.join(', ')})`);
+      for (const c of r.changes) console.log(`  ${c.delta > 0 ? '▲' : '▼'} ${c.cellId}: ${c.from} → ${c.to}`);
+      if (r.tooLittleData) console.log('  (πολύ λίγα δεδομένα για συμπέρασμα)');
+      return 0;
+    }
+    case 'record': {
+      const [what, cellId] = args;
+      if (!what || !['pilot', 'call'].includes(what) || !cellId || !values.by) {
+        throw new Error('Χρήση: record <pilot|call> <κελί> --by <όνομα> [--comment "…"]');
+      }
+      if (!ctx.config.matrix.cells.some((c) => c.id === cellId)) throw new Error(`Άγνωστο κελί «${cellId}»`);
+      const db = await openLeadDb(ctx);
+      try {
+        const at = ctx.now().toISOString();
+        const s = await importEvents(ctx, new LeadStore(db, ctx.now), [
+          { key: `${cellId}|${what}|${values.by}|${at}`, source: 'manual', kind: what === 'pilot' ? 'pilot' : 'call_booked', occurredAt: at, cellId, note: `από ${values.by}${values.comment ? `: ${values.comment}` : ''}` },
+        ]);
+        console.log(s.imported ? `Καταγράφηκε ${what === 'pilot' ? 'pilot' : 'κλήση'} για το ${cellId}. Μετράει στην επόμενη εβδομαδιαία αναφορά.` : 'Υπήρχε ήδη.');
+      } finally {
+        await db.close();
+      }
+      return 0;
+    }
+    case 'unfreeze': {
+      const [id] = args;
+      if (!id) throw new Error('Χρήση: unfreeze <campaign-id> --by <όνομα>');
+      const db = await openLeadDb(ctx);
+      try {
+        const to = await unfreezeCampaign(new LeadStore(db, ctx.now), id, values.by ?? '', ctx.now());
+        console.log(`Η ${id} ξεπάγωσε (status: ${to}). Οι μετρήσεις bounce/spam ξεκινούν από το μηδέν.`);
+      } finally {
+        await db.close();
+      }
       return 0;
     }
     case 'leads': {

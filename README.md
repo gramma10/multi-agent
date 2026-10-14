@@ -49,6 +49,13 @@ npm run factory -- suppress email info@x.gr --reason "ζήτησε διαγρα�
 npm run factory -- gdpr-erase info@x.gr                 # άρθρο 17: σβήνει παντού, κρατά μόνο hash
 npm run factory -- gdpr-export info@x.gr                # άρθρο 15: ό,τι έχουμε, σε exports/gdpr/
 npm run factory -- retention                            # ανωνυμοποίηση παλιών leads
+
+# Αποτελέσματα (tracker)
+npm run factory -- track-import events.csv --source instantly   # ή smartlead | lemlist | calcom
+npm run factory -- track-calcom                         # κρατήσεις Χάρτη AI από το Cal.com API
+npm run factory -- record pilot <κελί> --by Χρήστος     # ένα pilot που ξεκίνησε
+npm run factory -- weekly                               # reports/YYYY-WW.md + αλλαγές priority
+npm run factory -- unfreeze <campaign-id> --by Χρήστος  # ξεπάγωμα καμπάνιας (μόνο άνθρωπος)
 ```
 
 Με `--dry-run` δεν χρειάζεται κανένα κλειδί: οι agents τρέχουν με fixtures, οι εγκρίσεις γράφονται στο `review/REVIEW.md` αντί για GitHub Issues, και όλα τα αρχεία πηγαίνουν σε ξεχωριστό φάκελο `.dry-run/` που δεν μπαίνει στο git.
@@ -120,4 +127,6 @@ GitHub Actions στο `.github/workflows/`:
 - [ ] Αν εγκριθεί το email: sending domains, inboxes, warmup, εργαλείο αποστολής (βλ. `compliance/DELIVERABILITY.md`), `config/sending-domains.yaml` (από το `.example`), και μετά `email.inboxes` και `email.warmup_started_at` στο `config/volume.yaml`.
 - [ ] Αν εγκριθούν οι κλήσεις: φόρτωση του μητρώου αντιρρήσεων κάθε μήνα (`npm run factory -- import-objection-registry <αρχείο>`).
 - [ ] **Exports:** τα κάνετε εσείς, τοπικά: `npm run factory -- export <campaign-id> --tool instantly|smartlead|lemlist`. Το αρχείο γράφεται στο `exports/` (εκτός git) και το ανεβάζετε στο εργαλείο αποστολής. Ο orchestrator δεν στέλνει ποτέ τίποτα.
+- [ ] **Μετά από κάθε αποστολή:** export των events από το εργαλείο αποστολής (CSV) και `track-import`. Οι διαγραφές μπαίνουν αμέσως στη suppression μόνο όταν γίνει η εισαγωγή, οπότε τουλάχιστον μία φορά τη μέρα όσο τρέχει καμπάνια. Για το Cal.com: `CAL_API_KEY` στα secrets (ή export CSV).
+- [ ] **Pilots:** `npm run factory -- record pilot <κελί> --by <όνομα>` όταν ξεκινά ένα.
 - [ ] **Καθημερινά, ~10 λεπτά:** εγκρίσεις στα GitHub Issues με labels.

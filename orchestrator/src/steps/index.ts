@@ -4,22 +4,8 @@ import { campaignStep, qaStep } from './campaign.ts';
 import { contentStep } from './content.ts';
 import { leadsStep } from './leads.ts';
 import { scoutStep } from './scout.ts';
-import type { StepDef, StepName } from './types.ts';
-
-/** Βήματα που υλοποιούνται σε επόμενες φάσεις. Μέχρι τότε το κελί περιμένει στο state του. */
-function pending(name: StepName, readyStates: State[], working: State, done: State, phase: number): StepDef {
-  return {
-    name,
-    agent: null,
-    readyStates,
-    working,
-    done,
-    available: false,
-    async execute() {
-      return { ok: false, error: `το βήμα ${name} υλοποιείται στη Φάση ${phase}` };
-    },
-  };
-}
+import { trackStep } from './track.ts';
+import type { StepDef } from './types.ts';
 
 /**
  * Το export ΔΕΝ τρέχει αυτόματα τη νύχτα: το ζητά άνθρωπος με `factory -- export <campaign-id>`
@@ -46,7 +32,7 @@ export const STEPS: StepDef[] = [
   campaignStep,
   qaStep,
   exportStep,
-  pending('track', ['exported'], 'tracking', 'done', 7),
+  trackStep,
 ];
 
 export function stepByName(name: string): StepDef | undefined {

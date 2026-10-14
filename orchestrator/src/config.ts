@@ -115,6 +115,8 @@ const VolumeSchema = z.object({
       max_bounce_rate: z.number().min(0).max(1).default(0.03),
       max_spam_rate: z.number().min(0).max(1).default(0.001),
       min_contacts_before_judging: z.number().int().min(0).default(200),
+      min_sent_before_freeze: z.number().int().min(1).default(50),
+      max_priority_change_per_week: z.number().int().min(0).default(15),
     })
     .prefault({}),
 });

@@ -197,11 +197,29 @@ interface SelectOptions {
 export function selectNext(ctx: FactoryContext, all: Loaded[], opts: SelectOptions = {}, skipped?: RunReport['skipped']): Selection | null {
   const max = ctx.config.volume.max_step_attempts;
   const reviewsFull = pendingReviews(all) >= ctx.config.volume.max_pending_reviews;
+  // Πρώτα η κανονική δουλειά, μετά τα βήματα παρακολούθησης (track), ώστε να μην μπλοκάρουν το `next`.
+  for (const background of [false, true]) {
+    const sel = selectPass(ctx, all, opts, background, reviewsFull, max, skipped);
+    if (sel) return sel;
+  }
+  return null;
+}
+
+function selectPass(
+  ctx: FactoryContext,
+  all: Loaded[],
+  opts: SelectOptions,
+  background: boolean,
+  reviewsFull: boolean,
+  max: number,
+  skipped?: RunReport['skipped'],
+): Selection | null {
   for (const l of all) {
     if (opts.done?.has(l.cell.id)) continue;
     if (isTerminal(l.task.state)) continue;
     const step = stepForState(l.task.state);
     if (!step || !step.available || step.manual) continue;
+    if ((step.background === true) !== background) continue;
     if ((l.task.attempts[step.name] ?? 0) >= max) {
       skipped?.push({ cell: l.cell.id, reason: `${step.name}: ${max} αποτυχημένες προσπάθειες` });
       continue;
@@ -374,4 +392,21 @@ export function statusRows(ctx: FactoryContext): Array<{ cell: CellDef; task: Ta
     const next = gate ? `περιμένει gate ${gate}` : isTerminal(task.state) ? '—' : step ? (step.available ? step.name : `${step.name} (επόμενη φάση)`) : '—';
     return { cell, task, next };
   });
+}
+
+/** `factory -- weekly`: μετρικές, πάγωμα, αλλαγές priority και reports/YYYY-WW.md. */
+export async function runWeeklyReport(ctx: FactoryContext, week: string): Promise<import('./tracker/report.ts').WeeklyResult> {
+  const { runWeekly } = await import('./tracker/report.ts');
+  const { LeadStore } = await import('./leads/store.ts');
+  let result: import('./tracker/report.ts').WeeklyResult | undefined;
+  await guarded(ctx, async () => {
+    const db = await openLeadDb(ctx);
+    try {
+      result = await runWeekly(ctx, new LeadStore(db, ctx.now), week);
+    } finally {
+      await db.close();
+    }
+  });
+  if (!result) throw new Error('Παύση: η εβδομαδιαία αναφορά δεν έτρεξε.');
+  return result;
 }
