@@ -3,9 +3,9 @@
 id: xenodocheia-sales
 vertical: xenodocheia
 service: sales_agent
-state: content_ready
+state: published
 created_at: 2026-10-14T19:18:37.728Z
-updated_at: 2026-10-14T21:06:23.843Z
+updated_at: 2026-10-14T21:15:53.681Z
 attempts:
   scout: 0
   build: 0
@@ -28,6 +28,9 @@ gates:
   publish:
     opened_at: 2026-10-14T21:06:23.861Z
     ref: review
+    decided_at: 2026-10-14T21:15:53.681Z
+    decision: approved
+    by: gramma10
 feedback:
   - gate: idea
     at: 2026-10-14T21:01:06.900Z
@@ -41,6 +44,12 @@ feedback:
     decision: approved
     comments:
       - Έγκριση Gate 2 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
+  - gate: publish
+    at: 2026-10-14T21:15:53.681Z
+    by: gramma10
+    decision: approved
+    comments:
+      - Έγκριση Gate 3 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
 meta: {}
 history:
   - at: 2026-10-14T19:18:37.737Z
@@ -92,3 +101,9 @@ history:
     model: sonnet
     duration_ms: 0
     result: ok
+  - at: 2026-10-14T21:15:53.681Z
+    from: content_ready
+    to: published
+    actor: human:gramma10
+    result: approved
+    note: Έγκριση Gate 3 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)

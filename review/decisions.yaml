@@ -41,3 +41,24 @@
   at: 2026-10-14T21:06:19.890Z
   comment: Έγκριση Gate 2 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
   applied_at: 2026-10-14T21:06:20.842Z
+- cell: kommotiria-booking
+  gate: publish
+  decision: approved
+  by: gramma10
+  at: 2026-10-14T21:15:50.926Z
+  comment: Έγκριση Gate 3 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
+  applied_at: 2026-10-14T21:15:53.646Z
+- cell: iatreia-support
+  gate: publish
+  decision: approved
+  by: gramma10
+  at: 2026-10-14T21:15:51.808Z
+  comment: Έγκριση Gate 3 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
+  applied_at: 2026-10-14T21:15:53.677Z
+- cell: xenodocheia-sales
+  gate: publish
+  decision: approved
+  by: gramma10
+  at: 2026-10-14T21:15:52.744Z
+  comment: Έγκριση Gate 3 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
+  applied_at: 2026-10-14T21:15:53.706Z
