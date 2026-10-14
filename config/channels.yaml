@@ -1,0 +1,66 @@
+# Κανάλια outreach.
+#
+# legal_status εδώ είναι η ΠΡΟΕΠΙΛΟΓΗ. Η τελική τιμή διαβάζεται από το
+# compliance/LEGAL_STATUS.md, που το συμπληρώνει μόνο άνθρωπος (με ημερομηνία και όνομα).
+# Ο orchestrator δεν παράγει export για κανάλι που δεν είναι approved ΚΑΙ ΣΤΑ ΔΥΟ αρχεία.
+#
+# kind: τι είδους export παράγεται.
+#   none            = δεν υπάρχει export (inbound)
+#   call_list       = λίστα κλήσεων με σενάριο ανά επιχείρηση
+#   email_sequence  = CSV για εργαλείο αποστολής (Instantly / Smartlead / lemlist)
+#   manual_drafts   = πρόχειρα για χειροκίνητη αποστολή από άνθρωπο
+
+channels:
+  - id: inbound
+    name: "Inbound: SEO + Reels + δωρεάν εργαλεία (lead magnets)"
+    legal_status: approved
+    kind: none
+    volume: unlimited
+    notes: "Κύριο κανάλι όγκου. Opt-in μόνο με ρητή συγκατάθεση που καταγράφεται στον πίνακα consents."
+
+  - id: phone_b2b
+    name: "Τηλεφωνικές κλήσεις B2B (από ανθρώπους)"
+    legal_status: pending
+    kind: call_list
+    volume: "εκατοντάδες την εβδομάδα"
+    requires: [objection_registry_check]   # μητρώο αντιρρήσεων άρθρου 11 ν.3471/2006
+    notes: "Οι κλήσεις γίνονται από ανθρώπους. Ο orchestrator βγάζει μόνο λίστα + σενάριο."
+
+  - id: email_gr
+    name: "Cold email σε ελληνικές επιχειρήσεις"
+    legal_status: pending
+    kind: email_sequence
+    language: el
+    requires: [dns_check, volume_check, unsubscribe]
+    notes: "Άρθρο 11 ν.3471/2006: κατά κανόνα απαιτεί προηγούμενη συγκατάθεση. Μένει pending μέχρι γνώμη δικηγόρου."
+
+  - id: email_intl
+    name: "Cold email B2B σε αγγλόφωνες αγορές (UK/US/IE)"
+    legal_status: pending
+    kind: email_sequence
+    language: en
+    requires: [dns_check, volume_check, unsubscribe]
+    notes: "UK: PECR επιτρέπει B2B σε εταιρικές διευθύνσεις με opt-out. US: CAN-SPAM. Χρειάζονται αγγλικά templates και demos."
+
+  - id: partners
+    name: "Συνεργάτες (λογιστικά γραφεία, IT resellers, επιμελητήρια, σύλλογοι)"
+    legal_status: pending
+    kind: manual_drafts
+    volume: "μεσαίος, με πολλαπλασιαστή"
+    notes: "Προσωπικά μηνύματα, χαμηλός όγκος, υψηλή αξία. Στέλνει άνθρωπος."
+
+  - id: social_dm
+    name: "DMs σε Instagram / LinkedIn"
+    legal_status: pending
+    kind: manual_drafts
+    volume: "χαμηλός"
+    notes: "ΜΟΝΟ πρόχειρα για χειροκίνητη αποστολή. Αυτοματοποίηση εκεί παραβιάζει τους όρους των πλατφορμών."
+
+# Στοιχεία αποστολέα που μπαίνουν σε ΚΑΘΕ μήνυμα. Τα συμπληρώνουν οι ιδρυτές.
+sender:
+  company: "Auragram"
+  people: ["Χρήστος", "Παναγιώτης"]
+  website: "{{TODO: https://auragram.gr}}"
+  address: "{{TODO: διεύθυνση έδρας}}"
+  unsubscribe_url: "{{TODO: https://auragram.gr/unsubscribe}}"
+  booking_url: "{{TODO: Cal.com link για τον Χάρτη AI}}"

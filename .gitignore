@@ -1,0 +1,43 @@
+# Node / Next
+node_modules/
+.next/
+out/
+dist/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# Playwright
+showcase/test-results/
+showcase/playwright-report/
+showcase/blob-report/
+
+# Env και secrets
+.env
+.env.*
+!.env.example
+
+# Dry-run sandbox του orchestrator
+.dry-run/
+
+# Δεδομένα leads: ΠΟΤΕ στο git
+data/
+exports/
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+leads*.csv
+contacts*.csv
+**/campaign/*.csv
+
+# Lock του orchestrator
+.factory.lock
+
+# OS / editors
+.DS_Store
+.vscode/
+.idea/
+*.log

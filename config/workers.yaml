@@ -1,0 +1,52 @@
+# Ποιος headless CLI τρέχει ποιον agent.
+#
+# Κάθε worker είναι μια συνδρομή (Claude Code, Codex CLI, Gemini CLI). Ο orchestrator:
+#   - τρέχει τον primary· αν δει μήνυμα usage/rate limit, τον βάζει σε cooldown
+#     (reports/worker-state.json) και περνά στον fallback,
+#   - αν και ο fallback είναι σε cooldown ή λείπει, σταματά καθαρά το βήμα. ΠΟΤΕ loop επαναλήψεων.
+#   - καταγράφει κάθε κλήση στο reports/usage.jsonl.
+#
+# model: alias του CLI. null = η προεπιλογή του CLI.
+# Σε --dry-run όλοι οι agents τρέχουν με τον worker "fixture" (χωρίς κλειδιά, χωρίς δίκτυο).
+
+workers:
+  claude:
+    command: claude
+    secret_env: CLAUDE_CODE_OAUTH_TOKEN      # από `claude setup-token`
+    default_cooldown_minutes: 300            # αν το μήνυμα ορίου δεν λέει πότε ξαναρχίζει
+  codex:
+    command: codex
+    secret_env: OPENAI_API_KEY               # ή login μέσω ChatGPT σε self-hosted runner
+    default_cooldown_minutes: 300
+  gemini:
+    command: gemini
+    secret_env: GEMINI_API_KEY
+    default_cooldown_minutes: 1440
+
+agents:
+  scout:
+    primary: { worker: claude, model: sonnet }
+    fallback: { worker: gemini, model: null }
+    timeout_minutes: 20
+  builder:
+    primary: { worker: claude, model: opus }
+    fallback: { worker: codex, model: null }
+    timeout_minutes: 45
+  content:
+    primary: { worker: claude, model: sonnet }
+    fallback: { worker: gemini, model: null }
+    timeout_minutes: 20
+  outreach:
+    # μαζική προσωποποίηση: φθηνό και γρήγορο μοντέλο
+    primary: { worker: claude, model: haiku }
+    fallback: { worker: gemini, model: null }
+    timeout_minutes: 30
+  qa:
+    # άλλος «εγκέφαλος» από αυτόν που έγραψε τα μηνύματα
+    primary: { worker: codex, model: null }
+    fallback: { worker: claude, model: sonnet }
+    timeout_minutes: 20
+  tracker:
+    primary: { worker: claude, model: haiku }
+    fallback: { worker: gemini, model: null }
+    timeout_minutes: 10

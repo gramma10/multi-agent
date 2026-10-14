@@ -1,0 +1,53 @@
+# Gates: σημεία όπου περιμένει άνθρωπος.
+#
+# Ποιοι μπορούν να εγκρίνουν. Ο orchestrator δέχεται label σε gate issue ΜΟΝΟ αν το έβαλε
+# κάποιος από αυτή τη λίστα (GitHub login). Labels από bots ή άλλους λογαριασμούς αγνοούνται.
+approvers:
+  - "{{TODO: GitHub login Χρήστου}}"
+  - "{{TODO: GitHub login Παναγιώτη}}"
+
+labels:
+  approved: approved
+  changes: changes
+  rejected: rejected
+  gate: gate          # το βάζει ο orchestrator σε κάθε gate issue
+
+gates:
+  idea:
+    number: 1
+    title: "Ιδέα"
+    waiting_state: brief_ready
+    checklist:
+      - "Το πρόβλημα είναι πραγματικό και έχει πηγές (όχι υποθέσεις παντού);"
+      - "Το demo φαίνεται σε 60 δευτερόλεπτα από κινητό;"
+      - "Συνδέεται καθαρά με ένα pilot 2–4 εβδομάδων;"
+      - "Δεν πουλάει ιστοσελίδα;"
+  demo:
+    number: 2
+    title: "Demo"
+    waiting_state: demo_ready
+    checklist:
+      - "Άνοιξε το preview στο κινητό σου. Ολοκληρώνεται σε κάτω από 60″;"
+      - "Φαίνεται το badge «Demo: ενδεικτικά δεδομένα»;"
+      - "Τελειώνει με το CTA «Κλείσε τον Χάρτη AI»;"
+      - "Τα κείμενα είναι σε β' ενικό, χωρίς buzzwords;"
+      - "Πέρασαν τα tests (Playwright στα 390px);"
+  publish:
+    number: 3
+    title: "Δημοσίευση"
+    waiting_state: content_ready
+    checklist:
+      - "Η σελίδα του demo δεν υπονοεί ότι είναι έργο για πελάτη;"
+      - "Κανένα εφευρεμένο νούμερο (μόνο πηγές ή {{TODO}});"
+      - "Θα έλεγες τα Reel scripts στην κάμερα όπως είναι;"
+      - "Η SEO σελίδα κλάδου έχει ουσιαστικό, μοναδικό περιεχόμενο;"
+  campaign:
+    number: 4
+    title: "Καμπάνια"
+    waiting_state: campaign_ready
+    checklist:
+      - "Pass rate QA πάνω από το όριο του volume.yaml;"
+      - "Διάβασες το τυχαίο δείγμα 25 μηνυμάτων;"
+      - "Κάθε προσωποποίηση στηρίζεται σε πεδίο με πηγή;"
+      - "Υπάρχουν στοιχεία αποστολέα και τρόπος διαγραφής σε κάθε μήνυμα;"
+      - "Το κανάλι είναι approved στο compliance/LEGAL_STATUS.md;"

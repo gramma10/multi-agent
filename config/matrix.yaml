@@ -1,0 +1,453 @@
+# Πίνακας εργασιών: κλάδος × υπηρεσία
+#
+# Ο orchestrator διαλέγει πρώτα κελιά με fit: high και μετά με σειρά priority (μεγαλύτερο πρώτα).
+# priority: 0–100. Την αλλάζει ο tracker (βρόχος μάθησης) και ο άνθρωπος.
+# status: καθρέφτης του pipeline/<id>/task.yaml. Τον ενημερώνει ο orchestrator. Η αλήθεια είναι στο task.yaml.
+#
+# ΝΕΟΣ ΚΛΑΔΟΣ = μία γραμμή στο verticals. Τα κελιά του δημιουργούνται αυτόματα
+# (fit: medium, priority: 40) μέχρι να γράψεις δικά σου παρακάτω.
+#
+# kad: προθέματα ΚΑΔ για τον adapter ΓΕΜΗ (υπόθεση με βάση NACE Rev.2, να επαληθευτούν).
+# places: text queries για το Google Places API (επίσημο API, όχι scraping).
+
+verticals:
+  - { id: kommotiria, name: "Κομμωτήρια και κουρεία", kad: ["96.02"], places: ["κομμωτήριο", "κουρείο", "barber shop"] }
+  - { id: xenodocheia, name: "Ξενοδοχεία και ενοικιαζόμενα", kad: ["55.10", "55.20"], places: ["ξενοδοχείο", "ενοικιαζόμενα δωμάτια", "boutique hotel"] }
+  - { id: iatreia, name: "Ιατρεία και οδοντιατρεία", kad: ["86.21", "86.22", "86.23"], places: ["ιατρείο", "οδοντίατρος", "οδοντιατρείο"] }
+  - { id: estiasi, name: "Εστίαση", kad: ["56.10", "56.30"], places: ["εστιατόριο", "ταβέρνα", "καφέ"] }
+  - { id: logistika, name: "Λογιστικά γραφεία", kad: ["69.20"], places: ["λογιστικό γραφείο", "λογιστής"] }
+  - { id: kataskeves, name: "Κατασκευαστικές και τεχνικές εταιρείες", kad: ["41.20", "43.21", "43.22", "43.3", "71.12"], places: ["κατασκευαστική εταιρεία", "ανακαινίσεις", "ηλεκτρολόγος εγκαταστάτης", "υδραυλικός"] }
+  - { id: gymnastiria, name: "Γυμναστήρια και studios", kad: ["93.13", "85.51"], places: ["γυμναστήριο", "pilates studio", "yoga studio"] }
+  - { id: mesitika, name: "Μεσιτικά γραφεία", kad: ["68.31"], places: ["μεσιτικό γραφείο", "κτηματομεσίτης"] }
+  - { id: eshops, name: "E-shops", kad: ["47.91"], places: [] }
+  - { id: frontistiria, name: "Φροντιστήρια και σχολές", kad: ["85.59", "85.52"], places: ["φροντιστήριο", "κέντρο ξένων γλωσσών", "σχολή"] }
+
+services:
+  - { id: sales_agent, short: sales, name: "Sales Agent" }
+  - { id: support_agent, short: support, name: "Support Agent" }
+  - { id: operations_agent, short: operations, name: "Operations Agent" }
+  - { id: analyst_agent, short: analyst, name: "Analyst Agent" }
+  - { id: booking_system, short: booking, name: "Σύστημα κρατήσεων" }
+  - { id: automation, short: automation, name: "Αυτοματισμός" }
+
+cells:
+  - id: kommotiria-sales
+    vertical: kommotiria
+    service: sales_agent
+    priority: 46
+    status: queued
+    fit: medium
+    notes: "Μηνύματα στο Instagram για τιμές και διαθεσιμότητα που μένουν αναπάντητα όσο κόβουν."
+  - id: kommotiria-support
+    vertical: kommotiria
+    service: support_agent
+    priority: 45
+    status: queued
+    fit: medium
+    notes: "Ερωτήσεις για ωράριο, τιμές, χρώματα. Συχνά από Viber και Instagram."
+  - id: kommotiria-operations
+    vertical: kommotiria
+    service: operations_agent
+    priority: 24
+    status: queued
+    fit: low
+    notes: "Λίγα έγγραφα. Ίσως παραγγελίες προϊόντων."
+  - id: kommotiria-analyst
+    vertical: kommotiria
+    service: analyst_agent
+    priority: 23
+    status: queued
+    fit: low
+    notes: "Λίγα δομημένα δεδομένα στις περισσότερες."
+  - id: kommotiria-booking
+    vertical: kommotiria
+    service: booking_system
+    priority: 90
+    status: queued
+    fit: high
+    notes: "Κρατήσεις κυρίως τηλεφωνικά, στη μέση της δουλειάς. No-shows. Υπενθύμιση σε Viber."
+  - id: kommotiria-automation
+    vertical: kommotiria
+    service: automation
+    priority: 42
+    status: queued
+    fit: medium
+    notes: "Υπενθυμίσεις ραντεβού, αιτήματα κριτικής μετά την επίσκεψη."
+  - id: xenodocheia-sales
+    vertical: xenodocheia
+    service: sales_agent
+    priority: 86
+    status: queued
+    fit: high
+    notes: "Inquiries από email, site και social σε πολλές γλώσσες. Όποιος απαντά πρώτος κλείνει."
+  - id: xenodocheia-support
+    vertical: xenodocheia
+    service: support_agent
+    priority: 65
+    status: queued
+    fit: high
+    notes: "Ερωτήσεις επισκεπτών 24/7: check-in, parking, μεταφορές, πρωινό."
+  - id: xenodocheia-operations
+    vertical: xenodocheia
+    service: operations_agent
+    priority: 44
+    status: queued
+    fit: medium
+    notes: "Στοιχεία επισκεπτών, check-in, πρόγραμμα καθαριότητας."
+  - id: xenodocheia-analyst
+    vertical: xenodocheia
+    service: analyst_agent
+    priority: 43
+    status: queued
+    fit: medium
+    notes: "Πληρότητα, τιμές ανά περίοδο, κανάλια κρατήσεων."
+  - id: xenodocheia-booking
+    vertical: xenodocheia
+    service: booking_system
+    priority: 41
+    status: queued
+    fit: medium
+    notes: "Συνήθως υπάρχει ήδη booking engine ή κανάλια OTA. Αξία στις απευθείας κρατήσεις."
+  - id: xenodocheia-automation
+    vertical: xenodocheia
+    service: automation
+    priority: 62
+    status: queued
+    fit: high
+    notes: "OTA → μηνύματα πριν την άφιξη → αίτημα κριτικής. Πολλά εργαλεία που δεν μιλάνε μεταξύ τους."
+  - id: iatreia-sales
+    vertical: iatreia
+    service: sales_agent
+    priority: 26
+    status: queued
+    fit: low
+    notes: "Λίγη «πώληση». Η ζήτηση έρχεται από συστάσεις και αναζήτηση."
+  - id: iatreia-support
+    vertical: iatreia
+    service: support_agent
+    priority: 88
+    status: queued
+    fit: high
+    notes: "Η γραμματεία απαντά όλη μέρα στα ίδια: ωράριο, ραντεβού, ασφαλιστικά, τι να φέρω."
+  - id: iatreia-operations
+    vertical: iatreia
+    service: operations_agent
+    priority: 44
+    status: queued
+    fit: medium
+    notes: "Υπενθυμίσεις, έγγραφα ασθενών, αποτελέσματα. Προσοχή σε ευαίσθητα δεδομένα υγείας."
+  - id: iatreia-analyst
+    vertical: iatreia
+    service: analyst_agent
+    priority: 23
+    status: queued
+    fit: low
+    notes: "Τα ιατρικά δεδομένα είναι ευαίσθητα. Μόνο διοικητικά στοιχεία."
+  - id: iatreia-booking
+    vertical: iatreia
+    service: booking_system
+    priority: 61
+    status: queued
+    fit: high
+    notes: "Ραντεβού τηλεφωνικά, ακυρώσεις τελευταίας στιγμής, κενά στο πρόγραμμα."
+  - id: iatreia-automation
+    vertical: iatreia
+    service: automation
+    priority: 42
+    status: queued
+    fit: medium
+    notes: "Υπενθυμίσεις, follow-up μετά την επίσκεψη, συγχρονισμός ημερολογίων."
+  - id: estiasi-sales
+    vertical: estiasi
+    service: sales_agent
+    priority: 26
+    status: queued
+    fit: low
+    notes: "Λίγα leads με την κλασική έννοια. Εξαίρεση: εκδηλώσεις και catering."
+  - id: estiasi-support
+    vertical: estiasi
+    service: support_agent
+    priority: 45
+    status: queued
+    fit: medium
+    notes: "Ερωτήσεις για ωράριο, μενού, αλλεργιογόνα, κρατήσεις μέσα από Instagram."
+  - id: estiasi-operations
+    vertical: estiasi
+    service: operations_agent
+    priority: 44
+    status: queued
+    fit: medium
+    notes: "Παραγγελίες προμηθευτών, βάρδιες, ψηφιακή κάρτα εργασίας."
+  - id: estiasi-analyst
+    vertical: estiasi
+    service: analyst_agent
+    priority: 43
+    status: queued
+    fit: medium
+    notes: "Πωλήσεις ανά πιάτο και ώρα από το POS, κόστος πρώτων υλών."
+  - id: estiasi-booking
+    vertical: estiasi
+    service: booking_system
+    priority: 61
+    status: queued
+    fit: high
+    notes: "Κρατήσεις τραπεζιών από τηλέφωνο και DM. No-shows τα Σαββατοκύριακα."
+  - id: estiasi-automation
+    vertical: estiasi
+    service: automation
+    priority: 42
+    status: queued
+    fit: medium
+    notes: "POS → λογιστήριο, κριτικές Google → απάντηση, delivery πλατφόρμες."
+  - id: logistika-sales
+    vertical: logistika
+    service: sales_agent
+    priority: 26
+    status: queued
+    fit: low
+    notes: "Οι πελάτες έρχονται από συστάσεις."
+  - id: logistika-support
+    vertical: logistika
+    service: support_agent
+    priority: 45
+    status: queued
+    fit: medium
+    notes: "Οι πελάτες ρωτάνε συνέχεια «τι χρειάζεσαι από μένα» και «πότε λήγει»."
+  - id: logistika-operations
+    vertical: logistika
+    service: operations_agent
+    priority: 64
+    status: queued
+    fit: high
+    notes: "Μάζεμα παραστατικών, myDATA, προθεσμίες, υπενθυμίσεις σε πελάτες."
+  - id: logistika-analyst
+    vertical: logistika
+    service: analyst_agent
+    priority: 43
+    status: queued
+    fit: medium
+    notes: "Γρήγορες απαντήσεις για πελάτες από τα λογιστικά τους δεδομένα."
+  - id: logistika-booking
+    vertical: logistika
+    service: booking_system
+    priority: 21
+    status: queued
+    fit: low
+    notes: "Λίγα ραντεβού, δεν είναι το πρόβλημα."
+  - id: logistika-automation
+    vertical: logistika
+    service: automation
+    priority: 62
+    status: queued
+    fit: high
+    notes: "Email με παραστατικά → φάκελος πελάτη → καταχώριση. Πολλή χειρωνακτική δουλειά."
+  - id: kataskeves-sales
+    vertical: kataskeves
+    service: sales_agent
+    priority: 66
+    status: queued
+    fit: high
+    notes: "Αιτήματα προσφοράς που περιμένουν μέρες. Όποιος στέλνει πρώτος προσφορά κερδίζει."
+  - id: kataskeves-support
+    vertical: kataskeves
+    service: support_agent
+    priority: 25
+    status: queued
+    fit: low
+    notes: "Λίγες επαναλαμβανόμενες ερωτήσεις."
+  - id: kataskeves-operations
+    vertical: kataskeves
+    service: operations_agent
+    priority: 64
+    status: queued
+    fit: high
+    notes: "Εργοτάξια, συνεργεία, υλικά, φωτογραφίες, άδειες, ημερήσιες αναφορές."
+  - id: kataskeves-analyst
+    vertical: kataskeves
+    service: analyst_agent
+    priority: 43
+    status: queued
+    fit: medium
+    notes: "Κόστος ανά έργο, καθυστερήσεις, κέρδος ανά συνεργείο."
+  - id: kataskeves-booking
+    vertical: kataskeves
+    service: booking_system
+    priority: 21
+    status: queued
+    fit: low
+    notes: "Αυτοψίες, αλλά μικρός όγκος."
+  - id: kataskeves-automation
+    vertical: kataskeves
+    service: automation
+    priority: 42
+    status: queued
+    fit: medium
+    notes: "Φωτογραφίες εργοταξίου → αναφορά → πελάτης. Τιμολόγηση ανά στάδιο."
+  - id: gymnastiria-sales
+    vertical: gymnastiria
+    service: sales_agent
+    priority: 66
+    status: queued
+    fit: high
+    notes: "Leads για δοκιμαστικό που χάνονται αν δεν απαντήσεις μέσα στην ώρα."
+  - id: gymnastiria-support
+    vertical: gymnastiria
+    service: support_agent
+    priority: 45
+    status: queued
+    fit: medium
+    notes: "Ερωτήσεις για πρόγραμμα, τιμές, παγώματα συνδρομής."
+  - id: gymnastiria-operations
+    vertical: gymnastiria
+    service: operations_agent
+    priority: 24
+    status: queued
+    fit: low
+    notes: "Λίγα έγγραφα πέρα από συνδρομές."
+  - id: gymnastiria-analyst
+    vertical: gymnastiria
+    service: analyst_agent
+    priority: 23
+    status: queued
+    fit: low
+    notes: "Χρήσιμο μόνο σε αλυσίδες."
+  - id: gymnastiria-booking
+    vertical: gymnastiria
+    service: booking_system
+    priority: 61
+    status: queued
+    fit: high
+    notes: "Κρατήσεις θέσεων σε τμήματα, λίστες αναμονής, ακυρώσεις."
+  - id: gymnastiria-automation
+    vertical: gymnastiria
+    service: automation
+    priority: 42
+    status: queued
+    fit: medium
+    notes: "Ανανεώσεις συνδρομών, επαναπροσέγγιση όσων σταμάτησαν."
+  - id: mesitika-sales
+    vertical: mesitika
+    service: sales_agent
+    priority: 66
+    status: queued
+    fit: high
+    notes: "Πολλά inquiries από αγγελίες, λίγα σοβαρά. Αξιολόγηση και ραντεβού υπόδειξης."
+  - id: mesitika-support
+    vertical: mesitika
+    service: support_agent
+    priority: 45
+    status: queued
+    fit: medium
+    notes: "Ερωτήσεις για ακίνητα, έγγραφα, διαδικασίες."
+  - id: mesitika-operations
+    vertical: mesitika
+    service: operations_agent
+    priority: 44
+    status: queued
+    fit: medium
+    notes: "Ανάρτηση αγγελιών σε πολλές πλατφόρμες, έγγραφα συναλλαγών."
+  - id: mesitika-analyst
+    vertical: mesitika
+    service: analyst_agent
+    priority: 23
+    status: queued
+    fit: low
+    notes: "Τιμές ανά περιοχή υπάρχουν ήδη σε πλατφόρμες."
+  - id: mesitika-booking
+    vertical: mesitika
+    service: booking_system
+    priority: 41
+    status: queued
+    fit: medium
+    notes: "Ραντεβού υπόδειξης με ιδιοκτήτη και ενδιαφερόμενο."
+  - id: mesitika-automation
+    vertical: mesitika
+    service: automation
+    priority: 42
+    status: queued
+    fit: medium
+    notes: "Νέο ακίνητο → αγγελίες → ενημέρωση ενδιαφερομένων που ταιριάζουν."
+  - id: eshops-sales
+    vertical: eshops
+    service: sales_agent
+    priority: 46
+    status: queued
+    fit: medium
+    notes: "Εγκαταλελειμμένα καλάθια, ερωτήσεις πριν την αγορά."
+  - id: eshops-support
+    vertical: eshops
+    service: support_agent
+    priority: 65
+    status: queued
+    fit: high
+    notes: "«Πού είναι η παραγγελία μου», επιστροφές, μεγέθη. Ο ίδιος όγκος κάθε μέρα."
+  - id: eshops-operations
+    vertical: eshops
+    service: operations_agent
+    priority: 44
+    status: queued
+    fit: medium
+    notes: "Παραγγελίες → αποθήκη → courier → τιμολόγιο."
+  - id: eshops-analyst
+    vertical: eshops
+    service: analyst_agent
+    priority: 63
+    status: queued
+    fit: high
+    notes: "Δεδομένα υπάρχουν ήδη (πωλήσεις, προϊόντα, καμπάνιες) αλλά κανείς δεν τα κοιτάει."
+  - id: eshops-booking
+    vertical: eshops
+    service: booking_system
+    priority: 21
+    status: queued
+    fit: low
+    notes: "Δεν ταιριάζει."
+  - id: eshops-automation
+    vertical: eshops
+    service: automation
+    priority: 62
+    status: queued
+    fit: high
+    notes: "Πλατφόρμα e-shop ↔ ERP ↔ courier ↔ myDATA."
+  - id: frontistiria-sales
+    vertical: frontistiria
+    service: sales_agent
+    priority: 66
+    status: queued
+    fit: high
+    notes: "Εγγραφές τον Σεπτέμβριο: πολλά μηνύματα γονιών μαζεμένα σε λίγες εβδομάδες."
+  - id: frontistiria-support
+    vertical: frontistiria
+    service: support_agent
+    priority: 45
+    status: queued
+    fit: medium
+    notes: "Γονείς ρωτάνε για πρόγραμμα, βαθμούς, απουσίες, δίδακτρα."
+  - id: frontistiria-operations
+    vertical: frontistiria
+    service: operations_agent
+    priority: 44
+    status: queued
+    fit: medium
+    notes: "Παρουσίες, ειδοποιήσεις σε γονείς, πρόγραμμα καθηγητών."
+  - id: frontistiria-analyst
+    vertical: frontistiria
+    service: analyst_agent
+    priority: 23
+    status: queued
+    fit: low
+    notes: "Μικρή αξία για τα περισσότερα."
+  - id: frontistiria-booking
+    vertical: frontistiria
+    service: booking_system
+    priority: 21
+    status: queued
+    fit: low
+    notes: "Λίγα ραντεβού."
+  - id: frontistiria-automation
+    vertical: frontistiria
+    service: automation
+    priority: 42
+    status: queued
+    fit: medium
+    notes: "Ενημέρωση γονέων, υπενθυμίσεις διδάκτρων."

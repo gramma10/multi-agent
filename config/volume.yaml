@@ -1,0 +1,35 @@
+# Όρια όγκου ανά βήμα και κανάλι.
+# Ενδεικτικές αρχικές τιμές. Τις ανεβάζει ο άνθρωπος, όχι οι agents.
+
+# --- Βραδινός κύκλος ---
+briefs_per_night: 3            # πόσα κελιά ξεκινούν scouting ανά βράδυ
+demos_per_night: 2
+content_packs_per_night: 2
+max_pending_reviews: 8         # αν περιμένουν τόσα ή περισσότερα σε gates, δεν ξεκινά νέο κελί
+max_step_attempts: 3           # μετά από τόσες αποτυχίες στο ίδιο βήμα, το κελί περιμένει άνθρωπο
+
+# --- Leads ---
+leads_per_day: 1000            # προμήθεια/εμπλουτισμός
+lead_batch_size: 200           # ανά batch, για resume από εκεί που σταμάτησε
+leads_retention_months: 12     # μετά από τόσους μήνες τα leads που δεν μετατράπηκαν ανωνυμοποιούνται
+
+campaigns:
+  max_active: 5
+  sample_size_for_review: 25   # τυχαίο δείγμα μηνυμάτων για το Gate 4
+  min_qa_pass_rate: 0.95       # κάτω από αυτό η καμπάνια γυρνά στο campaign_drafting
+  max_qa_rounds: 2             # μετά από τόσους γύρους QA χωρίς επιτυχία, περιμένει άνθρωπο
+
+email:
+  inboxes: 0                   # μέχρι να στηθούν και να «ζεσταθούν». 0 = δεν παράγεται export
+  per_inbox_daily_limit: 40
+  ramp_up_weeks: 3             # εβδομάδα 1: 1/3 του ορίου, εβδομάδα 2: 2/3, μετά πλήρες
+  warmup_started_at: null      # ημερομηνία (YYYY-MM-DD) που ξεκίνησε το warmup των inboxes
+
+calls:
+  call_list_per_day: 60
+
+# --- Αυτόματη προστασία (tracker) ---
+guards:
+  max_bounce_rate: 0.03        # πάνω από 3% η καμπάνια παγώνει
+  max_spam_rate: 0.001         # πάνω από 0.1% η καμπάνια παγώνει
+  min_contacts_before_judging: 200   # πριν από τόσες επαφές δεν πέφτει priority για «καμία απόκριση»
