@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectNoHorizontalScroll } from './helpers';
+import { expectIndexing, expectNoHorizontalScroll, PUBLISHED } from './helpers';
 
 test('hub: δείχνει τα demos, φιλτράρει ανά κλάδο, έχει CTA', async ({ page }) => {
   await page.goto('/');
@@ -23,11 +23,14 @@ test('hub → demo: η κάρτα ανοίγει το demo', async ({ page }) =>
   await expect(page.getByTestId('demo-badge')).toBeVisible();
 });
 
-test('πρόχειρο demo: noindex και σήμανση «Πρόχειρο»', async ({ page }) => {
-  await page.goto('/demos/iatreia-support');
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
-  await expect(page.getByText('Πρόχειρο, δεν έχει δημοσιευτεί')).toBeVisible();
-});
+for (const slug of ['kommotiria-booking', 'iatreia-support', 'xenodocheia-sales']) {
+  const published = PUBLISHED.has(slug);
+  test(`${slug}: ${published ? 'δημοσιευμένο, χωρίς noindex και χωρίς «Πρόχειρο»' : 'πρόχειρο, noindex και σήμανση «Πρόχειρο»'}`, async ({ page }) => {
+    await page.goto(`/demos/${slug}`);
+    await expectIndexing(page, published);
+    await expect(page.getByText('Πρόχειρο, δεν έχει δημοσιευτεί')).toHaveCount(published ? 0 : 1);
+  });
+}
 
 test('άγνωστο demo → 404', async ({ page }) => {
   const r = await page.goto('/demos/den-yparxei');
