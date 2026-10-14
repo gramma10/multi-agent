@@ -118,7 +118,7 @@ export function unsubscribeToken(campaignId: string, key: string): string {
 }
 
 export function senderBlock(s: ChannelsConfig['sender']): string {
-  return `${s.people.join(' & ')} · ${s.company}\n${s.website} · ${s.address}`;
+  return `${s.people.join(' & ')} · ${s.company}\n${s.website}${s.address ? ` · ${s.address}` : ''}`;
 }
 
 function systemValues(ctx: RenderContext, lead: LeadView, kind: 'email' | 'call' | 'draft'): Record<string, string> {

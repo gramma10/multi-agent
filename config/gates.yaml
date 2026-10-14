@@ -3,8 +3,8 @@
 # Ποιοι μπορούν να εγκρίνουν. Ο orchestrator δέχεται label σε gate issue ΜΟΝΟ αν το έβαλε
 # κάποιος από αυτή τη λίστα (GitHub login). Labels από bots ή άλλους λογαριασμούς αγνοούνται.
 approvers:
-  - "{{TODO: GitHub login Χρήστου}}"
-  - "{{TODO: GitHub login Παναγιώτη}}"
+  - "gramma10"
+  - "{{TODO: GitHub login του δεύτερου ιδρυτή}}"
 
 labels:
   approved: approved

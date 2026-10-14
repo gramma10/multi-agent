@@ -145,7 +145,8 @@ const ChannelsSchema = z.object({
     company: z.string(),
     people: z.array(z.string()),
     website: z.string(),
-    address: z.string(),
+    /** null = δεν υπάρχει γραφείο· η γραμμή παραλείπεται από τα μηνύματα. */
+    address: z.string().nullable().default(null),
     unsubscribe_url: z.string(),
     booking_url: z.string(),
     demo_base_url: z.string().default('{{TODO: demo_base_url}}'),
