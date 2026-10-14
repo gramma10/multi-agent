@@ -101,7 +101,8 @@ describe('ροή μέχρι τη δημοσίευση (dry-run)', () => {
 
     approvals.record(id, 'publish', 'approved', 'christos');
     await runNight(ctx);
-    expect(read().state).toBe('published');
+    // Την ίδια νύχτα ξεκινά και η προμήθεια leads, οπότε το κελί μπορεί να έχει προχωρήσει ήδη.
+    expect(['published', 'lead_sourcing', 'leads_ready']).toContain(read().state);
     expect(published()).toEqual([id]);
     expect(read().history.find((h) => h.to === 'published')?.actor).toBe('human:christos');
   });

@@ -11,6 +11,8 @@ export interface StepSuccess {
   ok: true;
   /** Αν διαφέρει από το `done` του βήματος (π.χ. το QA γυρίζει σε campaign_drafting). */
   nextState?: State;
+  /** Πρόοδος χωρίς μετάβαση (π.χ. leads: συνεχίζει αύριο από τον cursor). */
+  stay?: boolean;
   note?: string;
   worker?: string;
   model?: string | null;

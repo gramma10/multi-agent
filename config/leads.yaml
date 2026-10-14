@@ -1,0 +1,50 @@
+# Ρυθμίσεις για την προμήθεια leads (Φάση 5). Δες agents/leads.md για τους κανόνες.
+
+# Πόλεις/περιοχές για αναζήτηση στο Google Places (text query: "<κατηγορία> <πόλη>").
+cities:
+  - Αθήνα
+  - Θεσσαλονίκη
+  - Πάτρα
+  - Ηράκλειο
+  - Λάρισα
+  - Βόλος
+  - Ιωάννινα
+  - Χανιά
+  - Ρόδος
+  - Νάξος
+
+sources:
+  places:
+    # Google Places API (New), Text Search. Επίσημο API με κλειδί, ΟΧΙ scraping του Maps.
+    endpoint: "https://places.googleapis.com/v1/places:searchText"
+    field_mask: "places.id,places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.internationalPhoneNumber,places.websiteUri,places.rating,places.userRatingCount,places.types,places.businessStatus,nextPageToken"
+    page_size: 20
+    max_pages_per_query: 3
+    requests_per_minute: 60
+    secret_env: GOOGLE_PLACES_API_KEY
+  gemi:
+    # ΓΕΜΗ open data API. Το host και οι παράμετροι ΠΡΕΠΕΙ να επαληθευτούν στο Swagger:
+    # https://opendata-api.businessportal.gr/opendata/docs/  (υπόθεση: D031)
+    endpoint: "https://opendata-api.businessportal.gr/api/opendata/v1/companies"
+    activity_param: "activities"
+    offset_param: "resultsOffset"
+    size_param: "resultsSize"
+    page_size: 100
+    requests_per_minute: 8          # αναφερόμενο όριο του API
+    secret_env: GEMI_API_KEY
+  website:
+    # Μόνο δημόσιες σελίδες, με σεβασμό στο robots.txt, 1 αίτημα/δευτερόλεπτο ανά domain.
+    user_agent: "AuragramFactoryBot/0.1 (+https://auragram.gr/bot)"
+    max_pages_per_site: 3
+    timeout_seconds: 10
+    max_bytes: 1000000
+
+# Emails που θεωρούνται εταιρικά (ρόλος, όχι πρόσωπο). Ό,τι άλλο βρεθεί σε site ΔΕΝ κρατιέται.
+role_email_prefixes: [info, contact, hello, office, mail, reservations, reservation, booking, bookings, kratiseis, grammateia, secretary, sales, support, enquiries, inquiries, frontdesk, reception, ypodoxi, epikoinonia, admin, eshop, shop, orders, studio, salon, clinic, iatreio, hotel]
+
+# Σήματα από το website για προσωποποίηση και scoring.
+signals:
+  online_booking: [fresha, booksy, treatwell, setmore, calendly, simplybook, bookia, anolla, "cal.com", doctoranytime, "booking.com/hotel", "κλείσε ραντεβού online", "online ραντεβού", "online κράτηση", "book now", "book online"]
+  chat: [tawk.to, intercom, crisp.chat, "fb-customerchat", tidio, livechat, "zendesk", "drift.com"]
+  viber: ["viber://", "invite.viber.com"]
+  whatsapp: ["wa.me/", "api.whatsapp.com"]

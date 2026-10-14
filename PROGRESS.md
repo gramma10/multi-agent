@@ -8,10 +8,42 @@
 | 2. Orchestrator | ✅ |
 | 3. Showcase app + 3 demos | ✅ (περιμένει Gate 1) |
 | 4. Content pipeline | ✅ (περιμένει Gates 1–3) |
-| 5. Leads σε όγκο | ⏳ |
-| 6. Campaigns + QA + export | — |
+| 5. Leads σε όγκο | ✅ (χωρίς πραγματικά κλειδιά) |
+| 6. Campaigns + QA + export | ⏳ |
 | 7. Tracker και βρόχος μάθησης | — |
 | 8. Χρονοπρογραμματισμός και παράδοση | — |
+
+---
+
+## Φάση 5: Leads σε όγκο (2026-10-14)
+
+### Τι ολοκληρώθηκε
+- **Supabase migration** (`supabase/migrations/20261014000001_leads.sql`): businesses, contacts, cell_leads, campaigns, campaign_members, events, suppression, consents, gdpr_requests, lead_cursors, api_cache, lead_daily. RLS ενεργό σε όλους, χωρίς policies. Ίδιο schema σε SQLite για dry-run (D029).
+- **Adapters με fixtures**: Google Places (New) Text Search, ΓΕΜΗ open data (D031), website (robots.txt, 1 αίτημα/δευτ. ανά domain, μόνο αρχική + επικοινωνία). Όλοι πάνω σε injectable HTTP client· σε dry-run τους απαντά ένας `FakeWorld` με χιλιάδες φανταστικές επιχειρήσεις (`.example`, ΑΦΜ 9999…), οπότε τρέχει ο ίδιος κώδικας parsing.
+- **Pipeline**: κανονικοποίηση (E.164, domains, ονόματα χωρίς τόνους/νομική μορφή), suppression (πριν και μετά τον εμπλουτισμό, με propagation: D033), εμπλουτισμός, dedupe (ΑΦΜ → ΓΕΜΗ → domain → τηλέφωνο → όνομα+πόλη: D030), scoring 0–100 με λόγους, `source` + `collected_at` σε κάθε πεδίο, batches με cursor ανά query (resume), cache 30 ημερών, όριο `leads_per_day` ακριβές.
+- **Βήμα leads** στον orchestrator: `published → lead_sourcing → leads_ready`· αν σταματήσει στο όριο ημέρας μένει σε `lead_sourcing` και συνεχίζει την επόμενη νύχτα. Αναφορά `pipeline/<id>/campaign/leads-stats.md` μόνο με αθροίσματα.
+- **Εντολές**: `leads <id> [--city] [--limit]`, `suppress`, `gdpr-erase` (σβήνει παντού, μένει μόνο hash), `gdpr-export`, `retention` (ανωνυμοποίηση μετά από `leads_retention_months`).
+- **Pre-commit check** (`scripts/check-personal-data.mjs`, `.githooks/pre-commit`, `npm run setup-hooks`): μπλοκάρει αρχεία δεδομένων με emails/τηλέφωνα και κείμενα με 5+ πραγματικά emails ή τηλέφωνα. `npm run check:personal-data` για όλο το repo (για το CI).
+
+### Τι ελέγχθηκε και πώς
+- `cd orchestrator && npm run check`: **94/94**. Νέα: κανονικοποίηση, robots.txt (μόνο 1 αίτημα όταν απαγορεύει), εξαγωγή από HTML, dedupe και στις 5 διαδρομές με διατήρηση της αρχικής πηγής, suppression και με hash, gdpr-erase (άδειοι 5 πίνακες, μόνο hash στη suppression), retention, scoring, ισοδυναμία schema SQLite ↔ Postgres και RLS σε κάθε πίνακα, suppression ανάμεσα σε πηγές, βήμα leads με όριο ημέρας και συνέχεια σε επόμενες μέρες, καθαρή αποτυχία χωρίς κλειδιά και στο CI χωρίς βάση.
+- **Κριτήριο της φάσης** (test): κόσμος 5.400 επιχειρήσεων → 7.600+ εγγραφές από τις πηγές → **5.200+ μοναδικές**, ίσες ακριβώς με την «αλήθεια» του fixture μείον τις 30 suppressed, **μηδέν** διπλότυπα σε ΑΦΜ / ΓΕΜΗ / domain / τηλέφωνο / όνομα+πόλη, κανένα προσωπικό email, κανένα κινητό από το ΓΕΜΗ, πηγή σε κάθε πεδίο, μέσος όρος score ψηλότερος για όσους δεν έχουν online κράτηση. Χρόνος: ~8–13″ σε SQLite.
+- Βρέθηκαν και διορθώθηκαν από τα tests: suppressed επιχειρήσεις ξανάμπαιναν από άλλη πηγή (D033)· το όριο ημέρας ξεπερνιόταν κατά μία σελίδα.
+- `npm run check:personal-data`: καθαρό repo· μπλοκάρει ένα CSV με 1 email και ένα .md με 5 emails (δοκιμή με staged αρχεία).
+
+### Τι ΔΕΝ ελέγχθηκε
+- **Τίποτα με πραγματικά κλειδιά** (Places, ΓΕΜΗ) ή πραγματική βάση Supabase. Το «1 πόλη × 1 κλάδο με πραγματικά κλειδιά» μένει για όταν υπάρξουν: `npm run factory -- leads kommotiria-booking --city Αθήνα --limit 20`.
+- Ο adapter του ΓΕΜΗ: host και παράμετροι είναι υπόθεση (D031).
+- Ο driver Postgres γράφτηκε αλλά δεν έτρεξε ποτέ.
+- Το scoring είναι κρίση, όχι μοντέλο. Θα το διορθώσει ο tracker με πραγματικά αποτελέσματα.
+
+### Αποφάσεις
+D029–D033: Postgres/SQLite, dedupe με όνομα+πόλη, ΓΕΜΗ ως υπόθεση, τι κρατάμε από websites, suppression που κλειδώνει όλη την επιχείρηση.
+
+### Τι χρειάζομαι από τους ιδρυτές
+- `GOOGLE_PLACES_API_KEY`, `GEMI_API_KEY`, Supabase project + `SUPABASE_DB_URL`, και εκτέλεση του migration.
+- Γνώμη δικηγόρου για τη νομική βάση συλλογής (ερώτηση 3 στο `compliance/LEGAL_STATUS.md`) **πριν** τρέξει πραγματική προμήθεια leads.
+- `npm run setup-hooks` σε κάθε υπολογιστή που κάνει commits.
 
 ---
 

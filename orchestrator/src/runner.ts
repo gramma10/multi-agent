@@ -21,6 +21,8 @@ export interface StepReport {
   to: string;
   note?: string;
   gateOpened?: boolean;
+  /** Το βήμα έκανε πρόοδο χωρίς μετάβαση (θα συνεχίσει σε επόμενη εκτέλεση). */
+  stayed?: boolean;
 }
 
 export interface RunReport {
@@ -81,6 +83,15 @@ export async function runStep(ctx: FactoryContext, l: Loaded, step: StepDef): Pr
     persist(ctx, task);
     ctx.log(`  ✗ ${result.error}`);
     return { cell: cell.id, step: step.name, ok: false, from, to: task.state, note: result.error, agentUnavailable: result.agentUnavailable };
+  }
+
+  if (result.stay) {
+    task.attempts[step.name] = 0;
+    task.last_error = null;
+    task.updated_at = ctx.now().toISOString();
+    persist(ctx, task);
+    ctx.log(`  … ${task.state}${result.note ? ` (${result.note})` : ''}`);
+    return { cell: cell.id, step: step.name, ok: true, from, to: task.state, note: result.note, stayed: true };
   }
 
   const to = result.nextState ?? step.done;
@@ -252,9 +263,10 @@ export function runNight(ctx: FactoryContext): Promise<RunReport> {
       const r = await runStep(ctx, sel.l, sel.step);
       report.steps.push(r);
       if (sel.step.budget) budgets.set(sel.step.budget, (budgets.get(sel.step.budget) ?? 0) - 1);
-      if (!r.ok) {
-        failedTonight.add(sel.l.cell.id); // κάθε κελί αποτυγχάνει το πολύ μία φορά ανά βράδυ
-        if (r.agentUnavailable && sel.step.agent) blockedAgents.add(sel.step.agent);
+      if (!r.ok || r.stayed) {
+        // Κάθε κελί αποτυγχάνει το πολύ μία φορά ανά βράδυ· ό,τι «συνεχίζει αύριο» δεν ξαναπιάνεται απόψε.
+        failedTonight.add(sel.l.cell.id);
+        if (!r.ok && r.agentUnavailable && sel.step.agent) blockedAgents.add(sel.step.agent);
       }
     }
     // Για το report: όσα κελιά έμειναν πίσω λόγω ορίου προσπαθειών.

@@ -26,7 +26,7 @@ Scout → [Gate 1: ιδέα] → Builder → [Gate 2: demo] → Content → [Gat
 | `compliance/` | νομικό status καναλιών, deliverability, suppression |
 | `supabase/migrations/` | το schema της βάσης για leads, καμπάνιες, events |
 
-Δεδομένα leads (στοιχεία επιχειρήσεων και επαφών) **δεν μπαίνουν ποτέ στο git**. Ζουν μόνο στη βάση.
+Δεδομένα leads (στοιχεία επιχειρήσεων και επαφών) **δεν μπαίνουν ποτέ στο git**. Ζουν μόνο στη βάση. Ένα pre-commit check το επιβάλλει: τρέξε μία φορά `npm run setup-hooks`.
 
 ## Πώς τρέχει
 
@@ -42,6 +42,13 @@ npm run factory -- run-morning             # διαβάζει εγκρίσεις
 npm run factory -- sync-approvals          # διαβάζει μόνο τα labels στα issues
 npm run factory -- cell <id> <step>        # χειροκίνητη εκτέλεση ενός βήματος
 npm run factory -- export <campaign-id>    # batch για το εργαλείο αποστολής (μόνο αν έχει εγκριθεί)
+
+# Leads (στη βάση, ποτέ στο git)
+npm run factory -- leads <id> --city Αθήνα --limit 50   # δοκιμή πηγών για 1 πόλη
+npm run factory -- suppress email info@x.gr --reason "ζήτησε διαγραφή"
+npm run factory -- gdpr-erase info@x.gr                 # άρθρο 17: σβήνει παντού, κρατά μόνο hash
+npm run factory -- gdpr-export info@x.gr                # άρθρο 15: ό,τι έχουμε, σε exports/gdpr/
+npm run factory -- retention                            # ανωνυμοποίηση παλιών leads
 ```
 
 Με `--dry-run` δεν χρειάζεται κανένα κλειδί: οι agents τρέχουν με fixtures, οι εγκρίσεις γράφονται στο `review/REVIEW.md` αντί για GitHub Issues, και όλα τα αρχεία πηγαίνουν σε ξεχωριστό φάκελο `.dry-run/` που δεν μπαίνει στο git.
@@ -104,7 +111,7 @@ GitHub Actions στο `.github/workflows/`:
 
 Αυτά δεν μπορεί να τα κάνει κανένας agent:
 
-- [ ] **GitHub secrets:** `CLAUDE_CODE_OAUTH_TOKEN` (από `claude setup-token`), προαιρετικά `OPENAI_API_KEY` (Codex) και `GEMINI_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `GOOGLE_PLACES_API_KEY`, κλειδί ΓΕΜΗ (`GEMI_API_KEY`).
+- [ ] **GitHub secrets:** `CLAUDE_CODE_OAUTH_TOKEN` (από `claude setup-token`), προαιρετικά `OPENAI_API_KEY` (Codex) και `GEMINI_API_KEY`, `SUPABASE_DB_URL` (connection string από Supabase → Project Settings → Database), `GOOGLE_PLACES_API_KEY`, κλειδί ΓΕΜΗ (`GEMI_API_KEY`, δωρεάν από το opendata του ΓΕΜΗ).
 - [ ] **GitHub logins** των δύο ιδρυτών στο `config/gates.yaml` → `approvers`.
 - [ ] **Vercel project** για το `showcase/` (Root Directory: `showcase`) και domain, π.χ. `demos.auragram.gr`.
 - [ ] **Supabase project** και εκτέλεση των migrations στο `supabase/migrations/`.

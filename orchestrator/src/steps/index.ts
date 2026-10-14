@@ -1,6 +1,7 @@
 import type { State } from '../state/machine.ts';
 import { buildStep } from './build.ts';
 import { contentStep } from './content.ts';
+import { leadsStep } from './leads.ts';
 import { scoutStep } from './scout.ts';
 import type { StepDef, StepName } from './types.ts';
 
@@ -23,7 +24,7 @@ export const STEPS: StepDef[] = [
   scoutStep,
   buildStep,
   contentStep,
-  pending('leads', ['published'], 'lead_sourcing', 'leads_ready', 5),
+  leadsStep,
   pending('campaign', ['leads_ready'], 'campaign_drafting', 'qa_check', 6),
   pending('qa', ['qa_check'], 'qa_check', 'campaign_ready', 6),
   pending('export', ['campaign_approved'], 'campaign_approved', 'exported', 6),

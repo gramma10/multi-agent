@@ -5,6 +5,13 @@ import { cellLabel, GATE_IDS } from './config.ts';
 import { createContext } from './context.ts';
 import { runCellStep, runMorning, runNext, runNight, runSyncApprovals, runSyncContent, statusRows, type RunReport } from './runner.ts';
 import { gateForState } from './state/machine.ts';
+import fs from 'node:fs';
+import path from 'node:path';
+import { openLeadDb } from './leads/index.ts';
+import { sha256 } from './leads/normalize.ts';
+import { LeadStore, type SuppressionKind } from './leads/store.ts';
+import { sourceLeads } from './steps/leads.ts';
+import { pauseReason } from './killswitch.ts';
 
 const HELP = `Auragram Showcase Factory
 
@@ -20,6 +27,15 @@ const HELP = `Auragram Showcase Factory
   decide <id> <approved|changes|rejected> --by <όνομα> [--comment "..."]
                                απόφαση gate σε dry-run (στην κανονική λειτουργία: labels στο GitHub)
   export <campaign-id>         batch για εργαλείο αποστολής (Φάση 6)
+
+Leads (τα δεδομένα ζουν μόνο στη βάση, ποτέ στο git):
+  leads <id> [--city Αθήνα] [--limit 50]
+                               προμήθεια leads για ένα κελί χωρίς αλλαγή state (π.χ. δοκιμή κλειδιών)
+  suppress <email|domain|phone|afm> <τιμή> --reason "…"
+                               προσθήκη στη suppression list (για πάντα, όλα τα κανάλια)
+  gdpr-erase <email|domain>    διαγραφή παντού, κρατά μόνο hash στη suppression (άρθρο 17)
+  gdpr-export <email|domain>   ό,τι έχουμε, σε exports/gdpr/ (άρθρο 15)
+  retention                    ανωνυμοποίηση leads παλαιότερων από leads_retention_months
 
 Επιλογές:
   --dry-run                    fixtures αντί για workers, εγκρίσεις στο REVIEW.md, state στο .dry-run/
@@ -48,6 +64,9 @@ async function main(argv: string[]): Promise<number> {
       by: { type: 'string' },
       comment: { type: 'string' },
       worker: { type: 'string' },
+      city: { type: 'string', multiple: true },
+      limit: { type: 'string' },
+      reason: { type: 'string' },
       help: { type: 'boolean', short: 'h', default: false },
     },
   });
@@ -124,6 +143,54 @@ async function main(argv: string[]): Promise<number> {
     }
     case 'export':
       throw new Error('Το export υλοποιείται στη Φάση 6.');
+    case 'leads': {
+      const [id] = args;
+      const cell = ctx.config.matrix.cells.find((c) => c.id === id);
+      if (!cell) throw new Error('Χρήση: leads <id κελιού> [--city …] [--limit N]');
+      const paused = pauseReason(ctx.ps, ctx.env);
+      if (paused) throw new Error(`Παύση: ${paused}`);
+      const r = await sourceLeads(ctx, cell, { cities: values.city, limit: values.limit ? Number(values.limit) : undefined });
+      console.log(`Πηγές: ${r.sourcesUsed.join(', ')}`);
+      console.log(r.stats);
+      console.log(`Αναφορά (μόνο αθροίσματα): ${path.relative(ctx.ps.repoRoot, r.statsFile)}`);
+      return 0;
+    }
+    case 'suppress':
+    case 'gdpr-erase':
+    case 'gdpr-export':
+    case 'retention': {
+      const db = await openLeadDb(ctx);
+      const store = new LeadStore(db, ctx.now);
+      try {
+        if (cmd === 'suppress') {
+          const [kind, value] = args;
+          if (!kind || !value || !['email', 'domain', 'phone', 'afm'].includes(kind) || !values.reason) {
+            throw new Error('Χρήση: suppress <email|domain|phone|afm> <τιμή> --reason "…"');
+          }
+          await store.suppress(kind as SuppressionKind, value, values.reason);
+          console.log(`Στη suppression list: ${kind}.`);
+        } else if (cmd === 'gdpr-erase') {
+          const [subject] = args;
+          if (!subject) throw new Error('Χρήση: gdpr-erase <email|domain>');
+          const r = await store.gdprErase(subject);
+          console.log(`Διαγράφηκαν ${r.businesses} επιχειρήσεις και ${r.contacts} στοιχεία επικοινωνίας. Στη suppression μένει μόνο το hash.`);
+        } else if (cmd === 'gdpr-export') {
+          const [subject] = args;
+          if (!subject) throw new Error('Χρήση: gdpr-export <email|domain>');
+          const data = await store.gdprExport(subject);
+          const file = path.join(ctx.ps.stateRoot, 'exports', 'gdpr', `${sha256(subject).slice(0, 16)}.json`);
+          fs.mkdirSync(path.dirname(file), { recursive: true });
+          fs.writeFileSync(file, JSON.stringify(data, null, 2));
+          console.log(`Γράφτηκε (εκτός git): ${file}`);
+        } else {
+          const n = await store.retention(ctx.config.volume.leads_retention_months);
+          console.log(`Ανωνυμοποιήθηκαν ${n} leads παλαιότερα από ${ctx.config.volume.leads_retention_months} μήνες.`);
+        }
+      } finally {
+        await db.close();
+      }
+      return 0;
+    }
     default:
       console.error(`Άγνωστη εντολή «${cmd}».\n`);
       console.log(HELP);
