@@ -1,0 +1,76 @@
+{
+  "verticals": [
+    {
+      "id": "kommotiria",
+      "name": "Κομμωτήρια και κουρεία"
+    },
+    {
+      "id": "xenodocheia",
+      "name": "Ξενοδοχεία και ενοικιαζόμενα"
+    },
+    {
+      "id": "iatreia",
+      "name": "Ιατρεία και οδοντιατρεία"
+    },
+    {
+      "id": "estiasi",
+      "name": "Εστίαση"
+    },
+    {
+      "id": "logistika",
+      "name": "Λογιστικά γραφεία"
+    },
+    {
+      "id": "kataskeves",
+      "name": "Κατασκευαστικές και τεχνικές εταιρείες"
+    },
+    {
+      "id": "gymnastiria",
+      "name": "Γυμναστήρια και studios"
+    },
+    {
+      "id": "mesitika",
+      "name": "Μεσιτικά γραφεία"
+    },
+    {
+      "id": "eshops",
+      "name": "E-shops"
+    },
+    {
+      "id": "frontistiria",
+      "name": "Φροντιστήρια και σχολές"
+    }
+  ],
+  "services": [
+    {
+      "id": "sales_agent",
+      "short": "sales",
+      "name": "Sales Agent"
+    },
+    {
+      "id": "support_agent",
+      "short": "support",
+      "name": "Support Agent"
+    },
+    {
+      "id": "operations_agent",
+      "short": "operations",
+      "name": "Operations Agent"
+    },
+    {
+      "id": "analyst_agent",
+      "short": "analyst",
+      "name": "Analyst Agent"
+    },
+    {
+      "id": "booking_system",
+      "short": "booking",
+      "name": "Σύστημα κρατήσεων"
+    },
+    {
+      "id": "automation",
+      "short": "automation",
+      "name": "Αυτοματισμός"
+    }
+  ]
+}

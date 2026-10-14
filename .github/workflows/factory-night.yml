@@ -1,0 +1,68 @@
+# Βραδινός κύκλος: κάθε κελί προχωρά όσο μπορεί, μέσα στα όρια του config/volume.yaml.
+# Το state γράφεται στο branch factory/state (ποτέ στο main) με PR προς το main.
+name: Factory night
+
+on:
+  schedule:
+    - cron: '0 23 * * *' # 02:00 ώρα Ελλάδας το καλοκαίρι, 01:00 τον χειμώνα
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry-run (fixtures, τίποτα δεν γράφεται)'
+        type: boolean
+        default: true
+
+# Ένας orchestrator τη φορά: νύχτα, πρωί και εβδομαδιαίο μοιράζονται το ίδιο group.
+concurrency:
+  group: factory-state
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  night:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '--dry-run' || '' }}
+      FACTORY_PAUSED: ${{ vars.FACTORY_PAUSED }}
+      FACTORY_PUBLISH_BRANCHES: ${{ vars.FACTORY_PUBLISH_BRANCHES }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NODE_NO_WARNINGS: '1'
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+      GEMI_API_KEY: ${{ secrets.GEMI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            orchestrator/package-lock.json
+            showcase/package-lock.json
+      - name: Branch του state
+        if: env.DRY_RUN == ''
+        run: bash scripts/ci/prepare-state.sh
+      - run: npm ci
+        working-directory: orchestrator
+      # Ο builder τρέχει lint/typecheck/Playwright στο showcase πριν το Gate 2.
+      - run: npm ci && npx playwright install --with-deps chromium
+        working-directory: showcase
+      - name: Workers (μόνο όσοι έχουν secret)
+        if: env.DRY_RUN == ''
+        run: bash scripts/ci/install-workers.sh
+      - name: run-night
+        run: npm run factory -- run-night $DRY_RUN
+      - name: Commit state
+        if: env.DRY_RUN == ''
+        run: |
+          bash scripts/ci/commit-state.sh "factory: βραδινός κύκλος $(date -u +%F)"

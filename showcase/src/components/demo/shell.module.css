@@ -1,0 +1,29 @@
+.shell {
+  padding: 16px 0 8px;
+}
+
+.head {
+  margin-bottom: 12px;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.meta {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.tagline {
+  font-size: 1.05rem;
+  color: var(--muted);
+}
+
+.disclaimer {
+  margin-top: 16px;
+}

@@ -1,0 +1,478 @@
+.player {
+  display: block;
+}
+
+.instruction {
+  background: var(--accent-soft);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-weight: 600;
+}
+
+.chatWrap {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 680px) {
+  .chatWrap {
+    grid-template-columns: 1.15fr 0.85fr;
+    align-items: start;
+  }
+}
+
+/* ---------- «κινητό» ---------- */
+
+.phone {
+  --chan: var(--accent);
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: #f4f2f8;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.phone[data-channel='viber'] {
+  --chan: var(--viber);
+}
+
+.phone[data-channel='whatsapp'] {
+  --chan: var(--whatsapp);
+}
+
+.phone[data-channel='messenger'] {
+  --chan: var(--messenger);
+}
+
+.phone[data-channel='instagram'] {
+  --chan: var(--instagram);
+}
+
+.chatHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--chan);
+  color: #fff;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 25%);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+
+.chatTitle {
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.chatSub {
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  min-height: 300px;
+  max-height: 52vh;
+  overflow-y: auto;
+}
+
+.bubble {
+  max-width: 85%;
+  padding: 8px 12px;
+  border-radius: 16px;
+  white-space: pre-line;
+  font-size: 0.95rem;
+  animation: pop 0.18s ease-out;
+}
+
+.bot {
+  align-self: flex-start;
+  background: #fff;
+  border-bottom-left-radius: 4px;
+}
+
+.user {
+  align-self: flex-end;
+  background: var(--chan);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.botGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.replyLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--ok);
+  background: var(--ok-soft);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+.source {
+  font-size: 0.7rem;
+  color: var(--muted);
+  padding-left: 6px;
+}
+
+.msgCard {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  font-size: 0.875rem;
+}
+
+.msgCard ul {
+  margin: 4px 0 0;
+  padding-left: 1.1rem;
+}
+
+.typing {
+  display: inline-flex;
+  gap: 4px;
+  padding: 12px 14px;
+}
+
+.typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #9a96aa;
+  animation: blink 1s infinite;
+}
+
+.typing span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--line);
+  background: #fff;
+  min-height: 60px;
+  align-items: center;
+}
+
+@keyframes pop {
+  from {
+    transform: translateY(4px);
+    opacity: 0;
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* ---------- panel επιχείρησης ---------- */
+
+.owner {
+  border: 1px dashed #c9c2e0;
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  background: #fff;
+}
+
+.ownerTitle {
+  font-size: 0.95rem;
+}
+
+.ownerList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.ownerItem {
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: #f7f5fc;
+  font-size: 0.875rem;
+  animation: pop 0.2s ease-out;
+}
+
+.ownerItem[data-kind='handoff'] {
+  background: var(--warn-soft);
+}
+
+.ownerItem[data-kind='lead'],
+.ownerItem[data-kind='booking'] {
+  background: var(--ok-soft);
+}
+
+.ownerItem ul {
+  margin: 4px 0 0;
+  padding-left: 1.1rem;
+}
+
+/* ---------- κράτηση / γενικά panels ---------- */
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.progress {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.progress span {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+}
+
+.progress span[data-active='true'] {
+  background: var(--accent);
+}
+
+.listButtons {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.rowBtn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chipsWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.day + .day {
+  margin-top: 12px;
+}
+
+.dayLabel {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.slots {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.slot {
+  min-height: 44px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.slot:disabled {
+  background: #f1eff5;
+  color: #aaa6b8;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0 0 16px;
+}
+
+.summary dt {
+  color: var(--muted);
+}
+
+.summary dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* ---------- dashboard ---------- */
+
+.answer {
+  margin-top: 12px;
+}
+
+.bars {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr 3.5rem;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.barTrack {
+  height: 12px;
+  border-radius: 6px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.bar {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 6px;
+}
+
+.barValue {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.suggestion {
+  background: var(--ok-soft);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- automation ---------- */
+
+.flow {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+  display: grid;
+  gap: 8px;
+}
+
+.flowStep {
+  display: grid;
+  grid-template-columns: 6rem 1fr;
+  gap: 10px;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  transition: background 0.2s;
+}
+
+.flowStep[data-state='running'] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.flowStep[data-state='done'] {
+  background: var(--ok-soft);
+}
+
+.flowTool {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* ---------- αποτέλεσμα ---------- */
+
+.result {
+  margin-top: 20px;
+}
+
+.doneLine {
+  font-weight: 700;
+}
+
+.beforeAfter h3 {
+  font-size: 1rem;
+}
+
+.beforeAfter ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.before,
+.after {
+  border-radius: var(--radius);
+  padding: 12px 14px;
+}
+
+.before {
+  background: #f6f2f2;
+}
+
+.after {
+  background: var(--ok-soft);
+}
+
+/* ---------- live AI ---------- */
+
+.liveForm {
+  display: flex;
+  gap: 8px;
+}
+
+.liveForm input {
+  flex: 1;
+  min-height: 48px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  font: inherit;
+}
+
+/* Οι επιλογές του chat αναδιπλώνονται αντί να κόβονται στα 390px. */
+.options :global(.chip) {
+  white-space: normal;
+  text-align: left;
+  min-height: 44px;
+  height: auto;
+  padding: 8px 14px;
+  line-height: 1.3;
+  max-width: 100%;
+}

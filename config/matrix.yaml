@@ -11,16 +11,16 @@
 # places: text queries για το Google Places API (επίσημο API, όχι scraping).
 
 verticals:
-  - { id: kommotiria, name: "Κομμωτήρια και κουρεία", kad: ["96.02"], places: ["κομμωτήριο", "κουρείο", "barber shop"] }
-  - { id: xenodocheia, name: "Ξενοδοχεία και ενοικιαζόμενα", kad: ["55.10", "55.20"], places: ["ξενοδοχείο", "ενοικιαζόμενα δωμάτια", "boutique hotel"] }
-  - { id: iatreia, name: "Ιατρεία και οδοντιατρεία", kad: ["86.21", "86.22", "86.23"], places: ["ιατρείο", "οδοντίατρος", "οδοντιατρείο"] }
-  - { id: estiasi, name: "Εστίαση", kad: ["56.10", "56.30"], places: ["εστιατόριο", "ταβέρνα", "καφέ"] }
-  - { id: logistika, name: "Λογιστικά γραφεία", kad: ["69.20"], places: ["λογιστικό γραφείο", "λογιστής"] }
-  - { id: kataskeves, name: "Κατασκευαστικές και τεχνικές εταιρείες", kad: ["41.20", "43.21", "43.22", "43.3", "71.12"], places: ["κατασκευαστική εταιρεία", "ανακαινίσεις", "ηλεκτρολόγος εγκαταστάτης", "υδραυλικός"] }
-  - { id: gymnastiria, name: "Γυμναστήρια και studios", kad: ["93.13", "85.51"], places: ["γυμναστήριο", "pilates studio", "yoga studio"] }
-  - { id: mesitika, name: "Μεσιτικά γραφεία", kad: ["68.31"], places: ["μεσιτικό γραφείο", "κτηματομεσίτης"] }
-  - { id: eshops, name: "E-shops", kad: ["47.91"], places: [] }
-  - { id: frontistiria, name: "Φροντιστήρια και σχολές", kad: ["85.59", "85.52"], places: ["φροντιστήριο", "κέντρο ξένων γλωσσών", "σχολή"] }
+  - { id: kommotiria, name: "Κομμωτήρια και κουρεία", kad: [ "96.02" ], places: [ "κομμωτήριο", "κουρείο", "barber shop" ] }
+  - { id: xenodocheia, name: "Ξενοδοχεία και ενοικιαζόμενα", kad: [ "55.10", "55.20" ], places: [ "ξενοδοχείο", "ενοικιαζόμενα δωμάτια", "boutique hotel" ] }
+  - { id: iatreia, name: "Ιατρεία και οδοντιατρεία", kad: [ "86.21", "86.22", "86.23" ], places: [ "ιατρείο", "οδοντίατρος", "οδοντιατρείο" ] }
+  - { id: estiasi, name: "Εστίαση", kad: [ "56.10", "56.30" ], places: [ "εστιατόριο", "ταβέρνα", "καφέ" ] }
+  - { id: logistika, name: "Λογιστικά γραφεία", kad: [ "69.20" ], places: [ "λογιστικό γραφείο", "λογιστής" ] }
+  - { id: kataskeves, name: "Κατασκευαστικές και τεχνικές εταιρείες", kad: [ "41.20", "43.21", "43.22", "43.3", "71.12" ], places: [ "κατασκευαστική εταιρεία", "ανακαινίσεις", "ηλεκτρολόγος εγκαταστάτης", "υδραυλικός" ] }
+  - { id: gymnastiria, name: "Γυμναστήρια και studios", kad: [ "93.13", "85.51" ], places: [ "γυμναστήριο", "pilates studio", "yoga studio" ] }
+  - { id: mesitika, name: "Μεσιτικά γραφεία", kad: [ "68.31" ], places: [ "μεσιτικό γραφείο", "κτηματομεσίτης" ] }
+  - { id: eshops, name: "E-shops", kad: [ "47.91" ], places: [] }
+  - { id: frontistiria, name: "Φροντιστήρια και σχολές", kad: [ "85.59", "85.52" ], places: [ "φροντιστήριο", "κέντρο ξένων γλωσσών", "σχολή" ] }
 
 services:
   - { id: sales_agent, short: sales, name: "Sales Agent" }
@@ -63,7 +63,7 @@ cells:
     vertical: kommotiria
     service: booking_system
     priority: 90
-    status: queued
+    status: brief_ready
     fit: high
     notes: "Κρατήσεις κυρίως τηλεφωνικά, στη μέση της δουλειάς. No-shows. Υπενθύμιση σε Viber."
   - id: kommotiria-automation
@@ -77,7 +77,7 @@ cells:
     vertical: xenodocheia
     service: sales_agent
     priority: 86
-    status: queued
+    status: brief_ready
     fit: high
     notes: "Inquiries από email, site και social σε πολλές γλώσσες. Όποιος απαντά πρώτος κλείνει."
   - id: xenodocheia-support
@@ -126,7 +126,7 @@ cells:
     vertical: iatreia
     service: support_agent
     priority: 88
-    status: queued
+    status: brief_ready
     fit: high
     notes: "Η γραμματεία απαντά όλη μέρα στα ίδια: ωράριο, ραντεβού, ασφαλιστικά, τι να φέρω."
   - id: iatreia-operations

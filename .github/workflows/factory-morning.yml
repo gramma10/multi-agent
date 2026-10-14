@@ -1,0 +1,53 @@
+# Πρωινός κύκλος: διαβάζει τις εγκρίσεις (labels στα issues), ανοίγει issues για νέα gates,
+# ξαναγράφει το review/REVIEW.md. Δεν τρέχει agents.
+name: Factory morning
+
+on:
+  schedule:
+    - cron: '0 5 * * *' # 08:00 ώρα Ελλάδας το καλοκαίρι, 07:00 τον χειμώνα
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry-run (τίποτα δεν γράφεται)'
+        type: boolean
+        default: true
+
+concurrency:
+  group: factory-state
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  morning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '--dry-run' || '' }}
+      FACTORY_PAUSED: ${{ vars.FACTORY_PAUSED }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NODE_NO_WARNINGS: '1'
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: orchestrator/package-lock.json
+      - name: Branch του state
+        if: env.DRY_RUN == ''
+        run: bash scripts/ci/prepare-state.sh
+      - run: npm ci
+        working-directory: orchestrator
+      - name: run-morning
+        run: npm run factory -- run-morning $DRY_RUN
+      - name: Commit state
+        if: env.DRY_RUN == ''
+        run: |
+          bash scripts/ci/commit-state.sh "factory: πρωινός κύκλος $(date -u +%F)"

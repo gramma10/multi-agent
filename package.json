@@ -1,0 +1,10 @@
+{
+  "name": "auragram-factory",
+  "private": true,
+  "scripts": {
+    "factory": "npm --prefix orchestrator run --silent factory --",
+    "check": "npm --prefix orchestrator run check",
+    "setup-hooks": "git config core.hooksPath .githooks",
+    "check:personal-data": "node scripts/check-personal-data.mjs --all"
+  }
+}

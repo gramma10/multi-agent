@@ -1,0 +1,32 @@
+# Το γράφει ΜΟΝΟ ο orchestrator. Μην το επεξεργάζεσαι με το χέρι.
+# Για να περάσεις gate: label στο GitHub issue (ή `factory -- decide` σε dry-run).
+id: iatreia-support
+vertical: iatreia
+service: support_agent
+state: brief_ready
+created_at: 2026-10-14T19:18:36.858Z
+updated_at: 2026-10-14T19:18:36.900Z
+attempts:
+  scout: 0
+last_error: null
+scout_score: 8
+gates:
+  idea:
+    opened_at: 2026-10-14T19:18:36.918Z
+    ref: review
+feedback: []
+meta: {}
+history:
+  - at: 2026-10-14T19:18:36.865Z
+    from: queued
+    to: scouting
+    actor: system:orchestrator
+  - at: 2026-10-14T19:18:36.900Z
+    from: scouting
+    to: brief_ready
+    actor: agent:scout
+    worker: prepared
+    model: sonnet
+    duration_ms: 0
+    result: ok
+    note: βαθμολογία 8/10, 5 πηγές

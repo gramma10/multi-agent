@@ -41,3 +41,4 @@ contacts*.csv
 .vscode/
 .idea/
 *.log
+showcase/src/demos/registry.generated.ts

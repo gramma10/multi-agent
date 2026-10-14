@@ -64,3 +64,4 @@ sender:
   address: "{{TODO: διεύθυνση έδρας}}"
   unsubscribe_url: "{{TODO: https://auragram.gr/unsubscribe}}"
   booking_url: "{{TODO: Cal.com link για τον Χάρτη AI}}"
+  demo_base_url: "{{TODO: https://demos.auragram.gr}}"

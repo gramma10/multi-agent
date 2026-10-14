@@ -1,0 +1,3 @@
+#!/bin/sh
+# Ενεργοποίηση: npm run setup-hooks (ή git config core.hooksPath .githooks)
+exec node scripts/check-personal-data.mjs

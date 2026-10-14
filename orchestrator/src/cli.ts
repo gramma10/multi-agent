@@ -1,0 +1,359 @@
+#!/usr/bin/env node
+import { parseArgs } from 'node:util';
+import { DryRunApprovals } from './approvals/dry-run.ts';
+import { cellLabel, GATE_IDS } from './config.ts';
+import { createContext } from './context.ts';
+import { runCellStep, runExport, runMorning, runNext, runNight, runSyncApprovals, runSyncContent, runWeeklyReport, statusRows, type RunReport } from './runner.ts';
+import { parseCalcomCsv, parseToolCsv, importEvents, type ImportSummary, type RawEvent } from './tracker/events.ts';
+import { fetchCalcomBookings } from './tracker/calcom.ts';
+import { unfreezeCampaign } from './tracker/guards.ts';
+import { simulateEvents } from './tracker/simulate.ts';
+import { previousWeek } from './tracker/week.ts';
+import { fetchHttp } from './leads/http.ts';
+import { phoneE164 } from './leads/normalize.ts';
+import { gateForState } from './state/machine.ts';
+import fs from 'node:fs';
+import path from 'node:path';
+import { openLeadDb } from './leads/index.ts';
+import { sha256 } from './leads/normalize.ts';
+import { LeadStore, type SuppressionKind } from './leads/store.ts';
+import { sourceLeads } from './steps/leads.ts';
+import { pauseReason } from './killswitch.ts';
+
+const HELP = `Auragram Showcase Factory
+
+Χρήση: npm run factory -- <εντολή> [επιλογές]
+
+  status                       πίνακας κελιών και states
+  next                         ένα βήμα για το επόμενο κελί
+  run-night                    πλήρης βραδινός κύκλος
+  run-morning                  εγκρίσεις, issues, REVIEW.md
+  sync-approvals               διαβάζει μόνο τις αποφάσεις στα gates
+  sync-content                 αντιγράφει περιεχόμενο στη showcase ως πρόχειρο (δεν δημοσιεύει)
+  cell <id> <βήμα>             χειροκίνητη εκτέλεση βήματος (scout|build|content|...)
+  decide <id> <approved|changes|rejected> --by <όνομα> [--comment "..."]
+                               απόφαση gate χωρίς GitHub Issues (με Issues: labels στο GitHub)
+  export <campaign-id> [--tool instantly|smartlead|lemlist]
+                               batch για το εργαλείο αποστολής, ΜΟΝΟ αν περάσει το compliance gate.
+                               Δεν στέλνει τίποτα: γράφει αρχείο στο exports/ (εκτός git)
+  import-objection-registry <αρχείο>
+                               φορτώνει το μητρώο αντιρρήσεων (άρθρο 11) στη suppression (τηλέφωνα)
+
+Tracker (αποτελέσματα, μάθηση):
+  track-import <αρχείο.csv> --source instantly|smartlead|lemlist|calcom [--campaign <id>]
+                               events από το εργαλείο αποστολής ή κρατήσεις Cal.com. Διαγραφές και
+                               spam μπαίνουν αμέσως στη suppression. Idempotent: το ίδιο αρχείο 2 φορές = 1
+  track-calcom [--since 2026-10-01]
+                               κρατήσεις από το Cal.com API (CAL_API_KEY στο περιβάλλον)
+  weekly [--week 2026-W42]     μετρικές, πάγωμα, αλλαγές priority, reports/YYYY-WW.md (προεπιλογή: η προηγούμενη εβδομάδα)
+  record <pilot|call> <κελί> --by <όνομα> [--comment "…"]
+                               χειροκίνητη καταγραφή pilot ή κλήσης που κλείστηκε εκτός Cal.com
+  unfreeze <campaign-id> --by <όνομα>
+                               ξεπάγωμα καμπάνιας (μόνο άνθρωπος, αφού λυθεί το πρόβλημα)
+  track-simulate <campaign-id> μόνο σε --dry-run: συνθετικά events για όσους βγήκαν σε export
+
+Leads (τα δεδομένα ζουν μόνο στη βάση, ποτέ στο git):
+  leads <id> [--city Αθήνα] [--limit 50]
+                               προμήθεια leads για ένα κελί χωρίς αλλαγή state (π.χ. δοκιμή κλειδιών)
+  suppress <email|domain|phone|afm> <τιμή> --reason "…"
+                               προσθήκη στη suppression list (για πάντα, όλα τα κανάλια)
+  gdpr-erase <email|domain>    διαγραφή παντού, κρατά μόνο hash στη suppression (άρθρο 17)
+  gdpr-export <email|domain>   ό,τι έχουμε, σε exports/gdpr/ (άρθρο 15)
+  retention                    ανωνυμοποίηση leads παλαιότερων από leads_retention_months
+
+Επιλογές:
+  --dry-run                    fixtures αντί για workers, εγκρίσεις στο REVIEW.md, state στο .dry-run/
+  --all                        (status) δείξε και τα κελιά σε αναμονή
+  --worker prepared|fixture    (cell) ίδιος worker για αυτή την εκτέλεση. «prepared» = τα αρχεία
+                               γράφτηκαν ήδη από άνθρωπο/session· ο orchestrator κάνει μόνο ελέγχους
+`;
+
+function printReport(r: RunReport): void {
+  if (r.paused) return;
+  const ok = r.steps.filter((s) => s.ok).length;
+  console.log(
+    `\nΣύνοψη: ${r.steps.length} βήματα (${ok} ok, ${r.steps.length - ok} απέτυχαν), ` +
+      `${r.decisions.length} αποφάσεις, ${r.gatesOpened.length + r.steps.filter((s) => s.gateOpened).length} νέα gates.`,
+  );
+  for (const s of r.skipped) console.log(`  ⚠ ${s.cell}: ${s.reason}`);
+}
+
+async function main(argv: string[]): Promise<number> {
+  const { values, positionals } = parseArgs({
+    args: argv,
+    allowPositionals: true,
+    options: {
+      'dry-run': { type: 'boolean', default: false },
+      all: { type: 'boolean', default: false },
+      by: { type: 'string' },
+      comment: { type: 'string' },
+      worker: { type: 'string' },
+      city: { type: 'string', multiple: true },
+      limit: { type: 'string' },
+      reason: { type: 'string' },
+      tool: { type: 'string' },
+      source: { type: 'string' },
+      campaign: { type: 'string' },
+      since: { type: 'string' },
+      week: { type: 'string' },
+      help: { type: 'boolean', short: 'h', default: false },
+    },
+  });
+  const [cmd, ...args] = positionals;
+  if (!cmd || values.help) {
+    console.log(HELP);
+    return cmd ? 0 : 1;
+  }
+  const dryRun = values['dry-run'] === true;
+  const ctx = createContext({ dryRun, workerName: values.worker });
+  if (dryRun) console.log(`🧪 dry-run: state στο ${ctx.ps.stateRoot}\n`);
+
+  switch (cmd) {
+    case 'status': {
+      const rows = statusRows(ctx);
+      const shown = values.all ? rows : rows.filter((r) => r.task.state !== 'queued');
+      const queued = rows.length - shown.length;
+      console.log('κελί'.padEnd(26) + 'fit'.padEnd(8) + 'prio'.padEnd(6) + 'state'.padEnd(20) + 'επόμενο');
+      for (const r of shown) {
+        console.log(
+          r.cell.id.padEnd(26) +
+            r.cell.fit.padEnd(8) +
+            String(r.cell.priority).padEnd(6) +
+            r.task.state.padEnd(20) +
+            r.next +
+            (r.task.last_error ? `  ⚠ ${r.task.last_error.slice(0, 80)}` : ''),
+        );
+      }
+      if (!values.all) {
+        const nextUp = rows.filter((r) => r.task.state === 'queued').slice(0, 5);
+        console.log(`\n${queued} κελιά σε αναμονή (queued). Τα επόμενα:`);
+        for (const r of nextUp) console.log(`  ${r.cell.id.padEnd(24)} ${r.cell.fit.padEnd(7)} ${r.cell.priority}  ${cellLabel(ctx.config.matrix, r.cell)}`);
+        console.log('Όλα: npm run factory -- status --all');
+      }
+      return 0;
+    }
+    case 'next':
+      printReport(await runNext(ctx));
+      return 0;
+    case 'run-night':
+      printReport(await runNight(ctx));
+      return 0;
+    case 'run-morning':
+      printReport(await runMorning(ctx));
+      return 0;
+    case 'sync-approvals':
+      printReport(await runSyncApprovals(ctx));
+      return 0;
+    case 'sync-content':
+      printReport(await runSyncContent(ctx));
+      return 0;
+    case 'cell': {
+      const [id, step] = args;
+      if (!id || !step) throw new Error('Χρήση: cell <id> <βήμα>');
+      const r = await runCellStep(ctx, id, step);
+      printReport(r);
+      return r.steps.every((s) => s.ok) ? 0 : 1;
+    }
+    case 'decide': {
+      const [id, decision] = args;
+      if (!(ctx.approvals instanceof DryRunApprovals)) {
+        throw new Error('Το decide δουλεύει μόνο χωρίς GitHub Issues (dry-run ή χωρίς GITHUB_REPOSITORY). Με Issues βάλε label στο issue.');
+      }
+      if (!id || !decision || !['approved', 'changes', 'rejected'].includes(decision)) {
+        throw new Error('Χρήση: decide <id> <approved|changes|rejected> --by <όνομα> [--comment "..."]');
+      }
+      const row = statusRows(ctx).find((r) => r.cell.id === id);
+      if (!row) throw new Error(`Άγνωστο κελί «${id}»`);
+      const gate = gateForState(row.task.state);
+      if (!gate || !GATE_IDS.includes(gate)) throw new Error(`Το κελί ${id} δεν περιμένει gate (state: ${row.task.state})`);
+      ctx.approvals.record(id, gate, decision as 'approved' | 'changes' | 'rejected', values.by ?? '', values.comment ?? '');
+      console.log(`Καταγράφηκε: ${id} gate ${gate} → ${decision}. Εφαρμόζεται στην επόμενη εκτέλεση (ή τώρα με sync-approvals).`);
+      return 0;
+    }
+    case 'export': {
+      const [id] = args;
+      if (!id) throw new Error('Χρήση: export <campaign-id> [--tool instantly|smartlead|lemlist]');
+      const tool = values.tool as 'instantly' | 'smartlead' | 'lemlist' | undefined;
+      if (tool && !['instantly', 'smartlead', 'lemlist'].includes(tool)) throw new Error('--tool: instantly | smartlead | lemlist');
+      const r = await runExport(ctx, id, { tool });
+      if (!r.gate.allowed) {
+        console.log(`⛔ Το export μπλοκάρεται για το ${id}:`);
+        for (const x of r.gate.reasons) console.log(`  - ${x}`);
+        return 2;
+      }
+      console.log(r.file ? `✓ ${r.rows} γραμμές → ${path.relative(ctx.ps.repoRoot, r.file)} (εκτός git)` : 'Τίποτα για export (όλα έχουν βγει ή είναι suppressed).');
+      console.log(`  suppressed τώρα: ${r.skippedSuppressed} · μένουν για επόμενο batch: ${r.remaining}`);
+      return 0;
+    }
+    case 'import-objection-registry': {
+      const [file] = args;
+      if (!file || !fs.existsSync(file)) throw new Error('Χρήση: import-objection-registry <αρχείο με ένα τηλέφωνο ανά γραμμή ή CSV>');
+      const phones = new Set<string>();
+      for (const m of fs.readFileSync(file, 'utf8').matchAll(/(?:\+30|0030)?[\s-]?[26]\d[\d\s-]{8,11}/g)) {
+        const p = phoneE164(m[0]);
+        if (p) phones.add(p);
+      }
+      const db = await openLeadDb(ctx);
+      const store = new LeadStore(db, ctx.now);
+      try {
+        await db.transaction(async () => {
+          for (const p of phones) await store.suppress('phone', p, 'μητρώο αντιρρήσεων άρθρου 11');
+          await store.setCursor('objection_registry', String(phones.size), false);
+        });
+      } finally {
+        await db.close();
+      }
+      console.log(`Φορτώθηκαν ${phones.size} τηλέφωνα στη suppression. Ισχύει για 30 ημέρες για τις λίστες κλήσεων.`);
+      return 0;
+    }
+    case 'track-import':
+    case 'track-calcom':
+    case 'track-simulate': {
+      let raw: RawEvent[] = [];
+      let ignored = 0;
+      const db = await openLeadDb(ctx);
+      const store = new LeadStore(db, ctx.now);
+      try {
+        if (cmd === 'track-import') {
+          const [file] = args;
+          const source = values.source ?? '';
+          if (!file || !fs.existsSync(file) || !['instantly', 'smartlead', 'lemlist', 'calcom'].includes(source)) {
+            throw new Error('Χρήση: track-import <αρχείο.csv> --source instantly|smartlead|lemlist|calcom [--campaign <id>]');
+          }
+          const text = fs.readFileSync(file, 'utf8');
+          ({ events: raw, ignored } = source === 'calcom' ? parseCalcomCsv(text) : parseToolCsv(text, source));
+          if (values.campaign) for (const e of raw) e.campaignId ??= values.campaign;
+        } else if (cmd === 'track-calcom') {
+          const key = ctx.env.CAL_API_KEY;
+          const since = new Date(values.since ?? new Date(ctx.now().getTime() - 14 * 86_400_000).toISOString());
+          if (dryRun) {
+            console.log('dry-run: δεν καλείται το Cal.com (καμία κράτηση).');
+          } else {
+            if (!key) throw new Error('Λείπει το CAL_API_KEY στο περιβάλλον.');
+            raw = await fetchCalcomBookings(fetchHttp, key, since);
+          }
+        } else {
+          if (!dryRun) throw new Error('Το track-simulate τρέχει μόνο με --dry-run.');
+          const [id] = args;
+          if (!id) throw new Error('Χρήση: track-simulate <campaign-id> --dry-run');
+          if (!(await db.get('select id from campaigns where id = ?', [id]))) throw new Error(`Άγνωστη καμπάνια «${id}»`);
+          const sim = await simulateEvents(store, id, ctx.now());
+          const dir = path.join(ctx.ps.stateRoot, 'exports', 'simulated');
+          fs.mkdirSync(dir, { recursive: true });
+          fs.writeFileSync(path.join(dir, `${id}-events.csv`), sim.toolCsv);
+          fs.writeFileSync(path.join(dir, `${id}-calcom.csv`), sim.calcomCsv);
+          const a = parseToolCsv(sim.toolCsv, 'instantly');
+          const b = parseCalcomCsv(sim.calcomCsv);
+          raw = [...a.events, ...b.events];
+          ignored = a.ignored + b.ignored;
+        }
+        const s: ImportSummary = await importEvents(ctx, store, raw);
+        console.log(`Διαβάστηκαν ${s.read} events (${ignored} γραμμές αγνοήθηκαν). Νέα: ${s.imported}, ήδη υπήρχαν: ${s.duplicates}, χωρίς ταίριασμα: ${s.unmatched}.`);
+        console.log(`Ανά τύπο: ${Object.entries(s.byType).map(([k, v]) => `${k} ${v}`).join(', ') || '—'}`);
+        if (s.suppressed) console.log(`Στη suppression (διαγραφές, spam, hard bounces): ${s.suppressed}.`);
+      } finally {
+        await db.close();
+      }
+      return 0;
+    }
+    case 'weekly': {
+      const week = values.week ?? previousWeek(ctx.now());
+      const r = await runWeeklyReport(ctx, week);
+      console.log(`Αναφορά: ${path.relative(ctx.ps.repoRoot, r.file)}`);
+      for (const f of r.frozen) console.log(`  🧊 πάγωσε: ${f.campaignId} (${f.reasons.join(', ')})`);
+      for (const c of r.changes) console.log(`  ${c.delta > 0 ? '▲' : '▼'} ${c.cellId}: ${c.from} → ${c.to}`);
+      if (r.tooLittleData) console.log('  (πολύ λίγα δεδομένα για συμπέρασμα)');
+      return 0;
+    }
+    case 'record': {
+      const [what, cellId] = args;
+      if (!what || !['pilot', 'call'].includes(what) || !cellId || !values.by) {
+        throw new Error('Χρήση: record <pilot|call> <κελί> --by <όνομα> [--comment "…"]');
+      }
+      if (!ctx.config.matrix.cells.some((c) => c.id === cellId)) throw new Error(`Άγνωστο κελί «${cellId}»`);
+      const db = await openLeadDb(ctx);
+      try {
+        const at = ctx.now().toISOString();
+        const s = await importEvents(ctx, new LeadStore(db, ctx.now), [
+          { key: `${cellId}|${what}|${values.by}|${at}`, source: 'manual', kind: what === 'pilot' ? 'pilot' : 'call_booked', occurredAt: at, cellId, note: `από ${values.by}${values.comment ? `: ${values.comment}` : ''}` },
+        ]);
+        console.log(s.imported ? `Καταγράφηκε ${what === 'pilot' ? 'pilot' : 'κλήση'} για το ${cellId}. Μετράει στην επόμενη εβδομαδιαία αναφορά.` : 'Υπήρχε ήδη.');
+      } finally {
+        await db.close();
+      }
+      return 0;
+    }
+    case 'unfreeze': {
+      const [id] = args;
+      if (!id) throw new Error('Χρήση: unfreeze <campaign-id> --by <όνομα>');
+      const db = await openLeadDb(ctx);
+      try {
+        const to = await unfreezeCampaign(new LeadStore(db, ctx.now), id, values.by ?? '', ctx.now());
+        console.log(`Η ${id} ξεπάγωσε (status: ${to}). Οι μετρήσεις bounce/spam ξεκινούν από το μηδέν.`);
+      } finally {
+        await db.close();
+      }
+      return 0;
+    }
+    case 'leads': {
+      const [id] = args;
+      const cell = ctx.config.matrix.cells.find((c) => c.id === id);
+      if (!cell) throw new Error('Χρήση: leads <id κελιού> [--city …] [--limit N]');
+      const paused = pauseReason(ctx.ps, ctx.env);
+      if (paused) throw new Error(`Παύση: ${paused}`);
+      const r = await sourceLeads(ctx, cell, { cities: values.city, limit: values.limit ? Number(values.limit) : undefined });
+      console.log(`Πηγές: ${r.sourcesUsed.join(', ')}`);
+      console.log(r.stats);
+      console.log(`Αναφορά (μόνο αθροίσματα): ${path.relative(ctx.ps.repoRoot, r.statsFile)}`);
+      return 0;
+    }
+    case 'suppress':
+    case 'gdpr-erase':
+    case 'gdpr-export':
+    case 'retention': {
+      const db = await openLeadDb(ctx);
+      const store = new LeadStore(db, ctx.now);
+      try {
+        if (cmd === 'suppress') {
+          const [kind, value] = args;
+          if (!kind || !value || !['email', 'domain', 'phone', 'afm'].includes(kind) || !values.reason) {
+            throw new Error('Χρήση: suppress <email|domain|phone|afm> <τιμή> --reason "…"');
+          }
+          await store.suppress(kind as SuppressionKind, value, values.reason);
+          console.log(`Στη suppression list: ${kind}.`);
+        } else if (cmd === 'gdpr-erase') {
+          const [subject] = args;
+          if (!subject) throw new Error('Χρήση: gdpr-erase <email|domain>');
+          const r = await store.gdprErase(subject);
+          console.log(`Διαγράφηκαν ${r.businesses} επιχειρήσεις και ${r.contacts} στοιχεία επικοινωνίας. Στη suppression μένει μόνο το hash.`);
+        } else if (cmd === 'gdpr-export') {
+          const [subject] = args;
+          if (!subject) throw new Error('Χρήση: gdpr-export <email|domain>');
+          const data = await store.gdprExport(subject);
+          const file = path.join(ctx.ps.stateRoot, 'exports', 'gdpr', `${sha256(subject).slice(0, 16)}.json`);
+          fs.mkdirSync(path.dirname(file), { recursive: true });
+          fs.writeFileSync(file, JSON.stringify(data, null, 2));
+          console.log(`Γράφτηκε (εκτός git): ${file}`);
+        } else {
+          const n = await store.retention(ctx.config.volume.leads_retention_months);
+          console.log(`Ανωνυμοποιήθηκαν ${n} leads παλαιότερα από ${ctx.config.volume.leads_retention_months} μήνες.`);
+        }
+      } finally {
+        await db.close();
+      }
+      return 0;
+    }
+    default:
+      console.error(`Άγνωστη εντολή «${cmd}».\n`);
+      console.log(HELP);
+      return 1;
+  }
+}
+
+main(process.argv.slice(2)).then(
+  (code) => process.exit(code),
+  (err: Error) => {
+    console.error(`✗ ${err.message}`);
+    process.exit(1);
+  },
+);

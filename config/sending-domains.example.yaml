@@ -1,0 +1,14 @@
+# ΠΑΡΑΔΕΙΓΜΑ. Αντέγραψέ το σε config/sending-domains.yaml ΜΟΝΟ όταν στηθούν τα domains (βλ. compliance/DELIVERABILITY.md).
+# Χωρίς config/sending-domains.yaml, δεν παράγεται κανένα export email.
+#
+# Ο orchestrator ελέγχει πριν από κάθε export, για κάθε domain:
+#   - SPF:   TXT στο <domain> που αρχίζει με v=spf1
+#   - DKIM:  TXT (ή CNAME) στο <selector>._domainkey.<domain>
+#   - DMARC: TXT στο _dmarc.<domain> που αρχίζει με v=DMARC1
+# και αρνείται το κύριο domain της Auragram ή δωρεάν παρόχους (gmail κ.λπ.).
+
+main_domain: auragram.gr
+domains:
+  - domain: getauragram.example
+    dkim_selector: s1
+    inboxes: ["christos@getauragram.example", "panagiotis@getauragram.example"]
