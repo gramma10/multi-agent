@@ -83,3 +83,14 @@ describe('GitHubApprovals', () => {
     expect(() => new GitHubApprovals('not a repo; rm -rf', gates)).toThrow();
   });
 });
+
+describe('μετάβαση από τοπικές εγκρίσεις σε GitHub', () => {
+  it('gate που άνοιξε τοπικά ανοίγει ξανά ως issue όταν υπάρξει GitHub', async () => {
+    const { gateNeedsOpening } = await import('../src/gates.ts');
+    const t = { state: 'brief_ready', gates: { idea: { opened_at: '2026-10-14T00:00:00Z', ref: 'review' } } } as unknown as Task;
+    expect(gateNeedsOpening(t, 'dry-run')).toBeNull();
+    expect(gateNeedsOpening(t, 'github')).toBe('idea');
+    const t2 = { state: 'brief_ready', gates: { idea: { opened_at: '2026-10-14T00:00:00Z', ref: '12' } } } as unknown as Task;
+    expect(gateNeedsOpening(t2, 'github')).toBeNull();
+  });
+});

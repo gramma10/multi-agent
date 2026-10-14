@@ -96,7 +96,7 @@ export async function runStep(ctx: FactoryContext, l: Loaded, step: StepDef): Pr
   ctx.log(`  ✓ ${task.state}${result.note ? ` (${result.note})` : ''}`);
 
   let gateOpened = false;
-  if (gateNeedsOpening(task) && (await openGateFor(ctx, task, cell))) {
+  if (gateNeedsOpening(task, ctx.approvals.kind) && (await openGateFor(ctx, task, cell))) {
     persist(ctx, task);
     gateOpened = true;
   }
@@ -140,7 +140,7 @@ export async function syncApprovals(ctx: FactoryContext, all: Loaded[], report: 
 /** Ανοίγει gate issues που λείπουν (π.χ. αν απέτυχε το gh στην προηγούμενη εκτέλεση). */
 async function ensureGatesOpened(ctx: FactoryContext, all: Loaded[], report: RunReport): Promise<void> {
   for (const l of all) {
-    if (!gateNeedsOpening(l.task)) continue;
+    if (!gateNeedsOpening(l.task, ctx.approvals.kind)) continue;
     if (await openGateFor(ctx, l.task, l.cell)) {
       persist(ctx, l.task);
       report.gatesOpened.push(l.cell.id);

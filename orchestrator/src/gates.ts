@@ -67,17 +67,21 @@ export function gateBody(ctx: FactoryContext, task: Task, cell: CellDef, gate: G
   return parts.join('\n\n');
 }
 
-/** Χρειάζεται νέο issue αν δεν έχει ανοίξει, ή αν το προηγούμενο του ίδιου gate έχει ήδη αποφασιστεί. */
-export function gateNeedsOpening(task: Task): GateId | null {
+/**
+ * Χρειάζεται νέο issue αν δεν έχει ανοίξει, αν το προηγούμενο του ίδιου gate έχει ήδη αποφασιστεί,
+ * ή αν άνοιξε τοπικά (χωρίς GitHub) και τώρα τρέχουμε με GitHub.
+ */
+export function gateNeedsOpening(task: Task, approvalsKind?: 'github' | 'dry-run'): GateId | null {
   const gate = gateForState(task.state);
   if (!gate) return null;
   const rec = task.gates[gate];
   if (!rec || rec.decided_at) return gate;
+  if (approvalsKind === 'github' && !/^\d+$/.test(rec.ref ?? '')) return gate;
   return null;
 }
 
 export async function openGateFor(ctx: FactoryContext, task: Task, cell: CellDef): Promise<boolean> {
-  const gate = gateNeedsOpening(task);
+  const gate = gateNeedsOpening(task, ctx.approvals.kind);
   if (!gate) return false;
   try {
     const opened = await ctx.approvals.openGate({

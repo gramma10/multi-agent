@@ -1,0 +1,32 @@
+# Το γράφει ΜΟΝΟ ο orchestrator. Μην το επεξεργάζεσαι με το χέρι.
+# Για να περάσεις gate: label στο GitHub issue (ή `factory -- decide` σε dry-run).
+id: xenodocheia-sales
+vertical: xenodocheia
+service: sales_agent
+state: brief_ready
+created_at: 2026-10-14T19:18:37.728Z
+updated_at: 2026-10-14T19:18:37.771Z
+attempts:
+  scout: 0
+last_error: null
+scout_score: 9
+gates:
+  idea:
+    opened_at: 2026-10-14T19:18:37.790Z
+    ref: review
+feedback: []
+meta: {}
+history:
+  - at: 2026-10-14T19:18:37.737Z
+    from: queued
+    to: scouting
+    actor: system:orchestrator
+  - at: 2026-10-14T19:18:37.771Z
+    from: scouting
+    to: brief_ready
+    actor: agent:scout
+    worker: prepared
+    model: sonnet
+    duration_ms: 0
+    result: ok
+    note: βαθμολογία 9/10, 5 πηγές

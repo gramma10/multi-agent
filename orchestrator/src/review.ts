@@ -50,13 +50,14 @@ export function renderReview(ctx: FactoryContext, entries: ReviewEntry[]): strin
     out.push(`### Gate ${g?.number}: ${g?.title}`, '');
     for (const { task, cell } of list) {
       const rec = task.gates[gate];
-      const link = rec?.url ? `[issue #${rec.ref}](${rec.url})` : rec?.ref === 'review' ? 'dry-run' : 'issue δεν άνοιξε ακόμα';
+      const link = rec?.url ? `[issue #${rec.ref}](${rec.url})` : rec?.ref === 'review' ? 'έγκριση τοπικά (χωρίς GitHub)' : 'issue δεν άνοιξε ακόμα';
       const score = gate === 'idea' && task.scout_score != null ? ` · βαθμολογία ${task.scout_score}/10` : '';
       out.push(
         `- **${cellLabel(ctx.config.matrix, cell)}** (\`${cell.id}\`) · περιμένει ${ago(enteredStateAt(task), now)} · ${link}${score}`,
       );
-      if (ctx.ps.dryRun) {
-        out.push(`  - \`npm run factory -- decide ${cell.id} approved --by <όνομα> --dry-run\``);
+      if (ctx.approvals.kind === 'dry-run') {
+        const flag = ctx.ps.dryRun ? ' --dry-run' : '';
+        out.push(`  - \`npm run factory -- decide ${cell.id} approved|changes|rejected --by <όνομα> [--comment "…"]${flag}\``);
       }
     }
     out.push('');

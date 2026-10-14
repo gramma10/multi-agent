@@ -6,12 +6,47 @@
 |---|---|
 | 1. Σκελετός και κανόνες | ✅ |
 | 2. Orchestrator | ✅ |
-| 3. Showcase app + 3 demos | ⏳ |
-| 4. Content pipeline | — |
+| 3. Showcase app + 3 demos | ✅ (περιμένει Gate 1) |
+| 4. Content pipeline | ⏳ |
 | 5. Leads σε όγκο | — |
 | 6. Campaigns + QA + export | — |
 | 7. Tracker και βρόχος μάθησης | — |
 | 8. Χρονοπρογραμματισμός και παράδοση | — |
+
+---
+
+## Φάση 3: Showcase app και τα πρώτα 3 demos (2026-10-14)
+
+### Τι ολοκληρώθηκε
+- **`showcase/`**: Next.js 16.4 (App Router, Turbopack), TypeScript, χωρίς UI βιβλιοθήκες, χωρίς web fonts. `/` hub με φίλτρα ανά κλάδο/υπηρεσία, `/demos/<slug>` στατικές σελίδες, `/api/live`, `robots.txt`, `sitemap.xml`, 404.
+- **Κοινά components**: `DemoShell` (badge «Demo: ενδεικτικά δεδομένα», οδηγία, ΠΡΙΝ→ΜΕΤΑ, KPI pilot, CTA, share), `ChatSimulator` (Viber/WhatsApp/Messenger/Instagram/webchat, με panel «Τι βλέπεις εσύ» για την επιχείρηση), `BookingFlow` (με υπενθύμιση Viber και λίστα αναμονής), `DashboardDemo`, `AutomationFlow`, `BeforeAfter`. Ένα νέο demo είναι ένα αρχείο config.
+- **3 demos**, το καθένα με brief από έρευνα:
+  1. `kommotiria-booking`: κράτηση σε 4 βήματα → υπενθύμιση στο Viber → «Θέλω αλλαγή» → η ώρα πάει στη λίστα αναμονής.
+  2. `iatreia-support`: Viber του ιατρείου: ωράριο, ΕΟΠΥΥ, ραντεβού ως αίτημα προς τη γραμματεία, και «πόνος στο στήθος» → καμία ιατρική συμβουλή, 166/112, προώθηση σε άνθρωπο.
+  3. `xenodocheia-sales`: ερώτημα σε EN/DE/IT/EL → απάντηση στη γλώσσα του επισκέπτη, link απευθείας κράτησης, κάρτα lead στα ελληνικά για τον ιδιοκτήτη.
+- **Live AI** (προαιρετικό): Anthropic SDK, rate limit ανά IP, όριο κόστους ανά ημέρα, κλειστό χωρίς κλειδί.
+- **Orchestrator**: ο Builder τώρα τρέχει μόνος του typecheck, lint και το Playwright test του demo· ανεβάζει το demo σε `demo/<slug>` και ανοίγει draft PR (με `FACTORY_PUBLISH_BRANCHES=1`)· worker `prepared` για outputs γραμμένα από άνθρωπο/session· gates που άνοιξαν τοπικά ξανανοίγουν ως GitHub issues όταν συνδεθεί το GitHub.
+- **Ροή μέσα από τον orchestrator**: τα 3 κελιά πέρασαν το βήμα scout (κανονική λειτουργία, όχι dry-run) και περιμένουν στο **Gate 1**, ορατά στο `review/REVIEW.md`.
+
+### Τι ελέγχθηκε και πώς
+- `cd showcase && npm run typecheck && npm run lint && npm run build`: ok.
+- `npx playwright test`: **18/18** σε 390×844. Τα 3 demos τρέχουν σε πραγματική ταχύτητα και ολοκληρώνονται κάτω από 60″ (assert), με badge, ΠΡΙΝ→ΜΕΤΑ και CTA. Επίσης: hub και φίλτρα, noindex στα πρόχειρα, 404, live AI κλειστό χωρίς κλειδί, τα 2 components χωρίς demo, budget απόδοσης (LCP < 1.5s, JS < 250 KB) σε 4 σελίδες, κανένα οριζόντιο scroll.
+- Screenshots στα 390px: βρέθηκε και διορθώθηκε ότι οι μεγάλες επιλογές στο chat κόβονταν δεξιά.
+- `cd orchestrator && npm run check`: **69/69** (νέα: δημοσίευση σε branch με πραγματικό git και bare remote, άρνηση push στο main, builder που αποτυγχάνει αν αποτύχει το Playwright, worker prepared, μεταφορά gates σε GitHub).
+- `npm run factory -- cell <id> scout --worker prepared` για τα 3 κελιά: βαθμολογίες 8, 8, 9/10, 5 πηγές το καθένα.
+
+### Τι ΔΕΝ ελέγχθηκε
+- Τα briefs και τα demos **δεν** τα έγραψε νυχτερινός worker (D020). Οι πηγές βρέθηκαν από αναζήτηση αλλά οι σελίδες δεν άνοιξαν (D021): τα briefs λένε ποιες να ελεγχθούν.
+- Σε πραγματικό κινητό και μέσα στον browser του Instagram: όχι, μόνο Chromium 390px.
+- Live AI με πραγματικό κλειδί: όχι.
+- Το PR ανά demo δεν άνοιξε στην πράξη (το repo δεν είναι προσβάσιμο από αυτή τη session). Ελέγχθηκε με τοπικό bare remote.
+
+### Αποφάσεις
+D020–D025: πώς γράφτηκαν τα πρώτα demos, πηγές χωρίς άνοιγμα σελίδων, live AI μόνο με Anthropic, budget με Playwright, `published.json`, branch ανά demo.
+
+### Τι χρειάζομαι από τους ιδρυτές
+- **Gate 1 για τα 3 κελιά**: διαβάστε τα `pipeline/<id>/brief.md` και αποφασίστε (τοπικά: `npm run factory -- decide <id> approved --by <όνομα>`).
+- Vercel project για το `showcase/` (Root Directory: `showcase`), και `NEXT_PUBLIC_BOOKING_URL` με το Cal.com link.
 
 ---
 

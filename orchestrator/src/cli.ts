@@ -23,6 +23,8 @@ const HELP = `Auragram Showcase Factory
 Επιλογές:
   --dry-run                    fixtures αντί για workers, εγκρίσεις στο REVIEW.md, state στο .dry-run/
   --all                        (status) δείξε και τα κελιά σε αναμονή
+  --worker prepared|fixture    (cell) ίδιος worker για αυτή την εκτέλεση. «prepared» = τα αρχεία
+                               γράφτηκαν ήδη από άνθρωπο/session· ο orchestrator κάνει μόνο ελέγχους
 `;
 
 function printReport(r: RunReport): void {
@@ -44,6 +46,7 @@ async function main(argv: string[]): Promise<number> {
       all: { type: 'boolean', default: false },
       by: { type: 'string' },
       comment: { type: 'string' },
+      worker: { type: 'string' },
       help: { type: 'boolean', short: 'h', default: false },
     },
   });
@@ -53,7 +56,7 @@ async function main(argv: string[]): Promise<number> {
     return cmd ? 0 : 1;
   }
   const dryRun = values['dry-run'] === true;
-  const ctx = createContext({ dryRun });
+  const ctx = createContext({ dryRun, workerName: values.worker });
   if (dryRun) console.log(`🧪 dry-run: state στο ${ctx.ps.stateRoot}\n`);
 
   switch (cmd) {

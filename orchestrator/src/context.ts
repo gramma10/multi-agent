@@ -3,7 +3,9 @@ import { GitHubApprovals, type GhExec } from './approvals/github.ts';
 import type { ApprovalsAdapter } from './approvals/types.ts';
 import { loadConfig, type FactoryConfig } from './config.ts';
 import { prepareStateRoot, resolvePaths, type FactoryPaths } from './paths.ts';
+import { defaultExec, type Exec } from './util/exec.ts';
 import { FixtureWorker } from './workers/fixture.ts';
+import { PreparedWorker } from './workers/prepared.ts';
 import { WorkerPool } from './workers/pool.ts';
 import type { Worker } from './workers/types.ts';
 
@@ -15,6 +17,8 @@ export interface FactoryContext {
   now: () => Date;
   log: (msg: string) => void;
   env: NodeJS.ProcessEnv;
+  /** Εξωτερικές εντολές (npm, git, gh). Injectable για tests. */
+  exec: Exec;
 }
 
 export interface CreateContextOptions {
@@ -29,6 +33,9 @@ export interface CreateContextOptions {
   workers?: Record<string, Worker>;
   approvals?: ApprovalsAdapter;
   gh?: GhExec;
+  exec?: Exec;
+  /** `--worker prepared|fixture` από το CLI: ίδιος worker για όλους τους agents σε αυτή την εκτέλεση. */
+  workerName?: string;
 }
 
 export function createContext(opts: CreateContextOptions): FactoryContext {
@@ -39,7 +46,11 @@ export function createContext(opts: CreateContextOptions): FactoryContext {
   const env = opts.env ?? process.env;
   const log = opts.log ?? ((m: string) => console.log(m));
 
-  const override = opts.worker ?? (opts.dryRun && !opts.workers ? new FixtureWorker() : undefined);
+  let named: Worker | undefined;
+  if (opts.workerName === 'prepared') named = new PreparedWorker();
+  else if (opts.workerName === 'fixture') named = new FixtureWorker();
+  else if (opts.workerName) throw new Error(`Άγνωστος --worker «${opts.workerName}» (prepared | fixture)`);
+  const override = opts.worker ?? named ?? (opts.dryRun && !opts.workers ? new FixtureWorker() : undefined);
   const pool = new WorkerPool({ ps, config: config.workers, now, override, workers: opts.workers });
 
   let approvals = opts.approvals;
@@ -52,5 +63,5 @@ export function createContext(opts: CreateContextOptions): FactoryContext {
       approvals = new GitHubApprovals(repo, config.gates, opts.gh);
     }
   }
-  return { ps, config, pool, approvals, now, log, env };
+  return { ps, config, pool, approvals, now, log, env, exec: opts.exec ?? defaultExec };
 }

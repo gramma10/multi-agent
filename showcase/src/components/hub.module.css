@@ -1,0 +1,95 @@
+.hero {
+  padding: 28px 0 8px;
+}
+
+.lead {
+  font-size: 1.1rem;
+  color: var(--muted);
+}
+
+.honest {
+  font-size: 0.9rem;
+  background: var(--warn-soft);
+  color: #6b3a07;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
+.filters {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.filterRow {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .cards {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.cardMeta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.cardTitle {
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+
+.cardText {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.cardCta {
+  margin-top: auto;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.empty {
+  padding: 20px;
+  border-radius: var(--radius);
+  border: 1px dashed var(--line);
+  background: #fff;
+}
+
+.how ol {
+  padding-left: 1.2rem;
+}
