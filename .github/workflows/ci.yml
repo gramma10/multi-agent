@@ -1,0 +1,94 @@
+# Έλεγχοι σε κάθε push και PR: orchestrator (lint, typecheck, tests), showcase (lint, typecheck,
+# build, Playwright στα 390px), προσωπικά δεδομένα, και ολόκληρη η ροή σε dry-run.
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  personal-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/check-personal-data.mjs --all
+
+  orchestrator:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: orchestrator
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: orchestrator/package-lock.json
+      - run: npm ci
+      - run: npm run check
+        env:
+          NODE_NO_WARNINGS: '1'
+
+  dry-run:
+    runs-on: ubuntu-latest
+    needs: orchestrator
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: orchestrator/package-lock.json
+      - run: npm ci
+        working-directory: orchestrator
+      - name: Ροή σε dry-run (fixtures, χωρίς κλειδιά)
+        run: bash scripts/ci/dry-run-e2e.sh
+        env:
+          NODE_NO_WARNINGS: '1'
+      - name: Αναφορές του dry-run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dry-run-reports
+          # Μόνο αναφορές και REVIEW.md: όχι data/ ή exports/ (ακόμα και αν είναι fixtures).
+          path: |
+            .dry-run/reports/
+            .dry-run/review/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  showcase:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: showcase
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: showcase/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run check
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: showcase/playwright-report/
+          retention-days: 7

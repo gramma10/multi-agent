@@ -99,18 +99,31 @@ git rm PAUSE && git commit -m "resume factory" && git push                  # ξ
 
 GitHub Actions στο `.github/workflows/`:
 
-- **Βραδινός κύκλος** (`factory-night.yml`): κάθε βράδυ, προχωρά ό,τι μπορεί μέσα στα όρια του `config/volume.yaml`.
-- **Πρωινός κύκλος** (`factory-morning.yml`): διαβάζει εγκρίσεις, ξαναγράφει το `REVIEW.md`, ανοίγει issues.
-- Κάθε workflow έχει `concurrency` group, ώστε να μην τρέχουν ποτέ δύο orchestrators ταυτόχρονα.
+| Workflow | Πότε | Τι κάνει |
+|---|---|---|
+| `factory-night.yml` | κάθε βράδυ 02:00 (ώρα Ελλάδας, καλοκαίρι) | προχωρά ό,τι μπορεί μέσα στα όρια του `config/volume.yaml` |
+| `factory-morning.yml` | κάθε πρωί 08:00 | διαβάζει εγκρίσεις, ανοίγει issues για νέα gates, ξαναγράφει το `REVIEW.md` |
+| `factory-weekly.yml` | Δευτέρα 09:00 | κρατήσεις Cal.com, εβδομαδιαία αναφορά, αλλαγές priority, retention |
+| `ci.yml` | κάθε push και PR | lint, typecheck, tests, Playwright στα 390px, έλεγχος προσωπικών δεδομένων, όλη η ροή σε dry-run |
+
+- **Το state πάει στο branch `factory/state`, ποτέ στο `main`.** Κάθε run ξεκινά από αυτό, παίρνει πρώτα τις αλλαγές σας από το `main` (config, merged PRs) και στο τέλος κάνει commit και push. Υπάρχει ένα ανοιχτό draft PR `factory/state → main`: όταν το κάνετε merge, βγαίνουν στο site όσα έχουν περάσει τα gates (το Vercel κάνει deploy από το `main`).
+- **Ένας orchestrator τη φορά:** τα τρία factory workflows μοιράζονται το `concurrency` group `factory-state`, χωρίς ακύρωση του run που τρέχει.
+- **Χειροκίνητη εκτέλεση:** Actions → workflow → Run workflow. Η προεπιλογή είναι **dry-run** (fixtures, τίποτα δεν γράφεται). Για πραγματικό run, ξετσεκάρετε το dry-run.
+- **Workers:** εγκαθίστανται μόνο όσοι έχουν secret. Αν λείπει το Codex ή το Gemini, ο orchestrator το βλέπει ως «δεν υπάρχει» και πάει στον fallback.
+- **Repo variables** (Settings → Secrets and variables → Actions → Variables): `FACTORY_PAUSED=true` σταματά τα πάντα· `FACTORY_PUBLISH_BRANCHES=1` ανεβάζει κάθε demo και σε δικό του branch `demo/<κελί>` με PR (για Vercel preview πριν το Gate 2).
+- Δοκιμή της ροής τοπικά, όπως στο CI: `bash scripts/ci/dry-run-e2e.sh`.
 
 ### Εναλλακτική: Claude Code scheduled routines
 
 Αν δεν θέλετε GitHub Actions, το ίδιο γίνεται με τα scheduled routines του Claude Code, που τρέχουν στο cloud με τη συνδρομή σας:
 
 ```
-/schedule "κάθε μέρα στις 02:00: cd στο repo, npm run factory -- run-night, commit και push στο branch factory/state"
-/schedule "κάθε μέρα στις 07:30: npm run factory -- run-morning"
+/schedule "κάθε μέρα στις 02:00: bash scripts/ci/prepare-state.sh && npm --prefix orchestrator ci && npm run factory -- run-night && bash scripts/ci/commit-state.sh 'factory: βραδινός κύκλος'"
+/schedule "κάθε μέρα στις 08:00: bash scripts/ci/prepare-state.sh && npm --prefix orchestrator ci && npm run factory -- run-morning && bash scripts/ci/commit-state.sh 'factory: πρωινός κύκλος'"
+/schedule "κάθε Δευτέρα στις 09:00: bash scripts/ci/prepare-state.sh && npm --prefix orchestrator ci && npm run factory -- weekly && bash scripts/ci/commit-state.sh 'factory: εβδομαδιαία αναφορά'"
 ```
+
+Τα ίδια scripts με το Actions: state στο `factory/state`, ποτέ στο `main`. Τα secrets (`SUPABASE_DB_URL` κ.λπ.) μπαίνουν στις μεταβλητές περιβάλλοντος του routine, όχι στο repo. Για εγκρίσεις με GitHub Issues χρειάζονται `GITHUB_REPOSITORY=owner/repo` και `gh` με δικαιώματα· αλλιώς οι εγκρίσεις γίνονται από το `review/REVIEW.md`: `npm run factory -- decide <κελί> approved --by <όνομα>` πάνω στο branch `factory/state`, commit και push.
 
 Τα routines δεν έχουν `concurrency` group, οπότε ο orchestrator κρατά και δικό του lock (`.factory.lock`) για να μην τρέξει δεύτερος ταυτόχρονα.
 
@@ -118,7 +131,19 @@ GitHub Actions στο `.github/workflows/`:
 
 Αυτά δεν μπορεί να τα κάνει κανένας agent:
 
-- [ ] **GitHub secrets:** `CLAUDE_CODE_OAUTH_TOKEN` (από `claude setup-token`), προαιρετικά `OPENAI_API_KEY` (Codex) και `GEMINI_API_KEY`, `SUPABASE_DB_URL` (connection string από Supabase → Project Settings → Database), `GOOGLE_PLACES_API_KEY`, κλειδί ΓΕΜΗ (`GEMI_API_KEY`, δωρεάν από το opendata του ΓΕΜΗ).
+- [ ] **GitHub secrets** (Settings → Secrets and variables → Actions):
+
+  | Secret | Από πού | Χωρίς αυτό |
+  |---|---|---|
+  | `CLAUDE_CODE_OAUTH_TOKEN` | `claude setup-token` (συνδρομή) | κανένας agent δεν τρέχει (μόνο fallbacks) |
+  | `OPENAI_API_KEY` | προαιρετικό, για Codex | ο outreach πάει στο Claude |
+  | `GEMINI_API_KEY` | προαιρετικό, για Gemini CLI | χωρίς fallback σε όρια χρήσης του Claude |
+  | `SUPABASE_DB_URL` | Supabase → Project Settings → Database → connection string | δεν τρέχουν leads, καμπάνιες, tracker στο Actions (D029: αντί για `SUPABASE_URL` + service key, ο orchestrator μιλά απευθείας στο Postgres) |
+  | `GOOGLE_PLACES_API_KEY` | Google Cloud, Places API (New) | leads μόνο από ΓΕΜΗ |
+  | `GEMI_API_KEY` | opendata του ΓΕΜΗ (δωρεάν) | leads μόνο από Places |
+  | `CAL_API_KEY` | Cal.com → Settings → Developer → API keys | κρατήσεις μόνο από CSV export |
+
+- [ ] **GitHub settings:** Settings → Actions → General → Workflow permissions: «Read and write» και «Allow GitHub Actions to create and approve pull requests» (για το PR του `factory/state`). Προτείνεται branch protection στο `main` (merge μόνο με PR και πράσινο CI).
 - [ ] **GitHub logins** των δύο ιδρυτών στο `config/gates.yaml` → `approvers`.
 - [ ] **Vercel project** για το `showcase/` (Root Directory: `showcase`) και domain, π.χ. `demos.auragram.gr`.
 - [ ] **Supabase project** και εκτέλεση των migrations στο `supabase/migrations/`.

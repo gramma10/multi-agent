@@ -32,7 +32,7 @@ const HELP = `Auragram Showcase Factory
   sync-content                 αντιγράφει περιεχόμενο στη showcase ως πρόχειρο (δεν δημοσιεύει)
   cell <id> <βήμα>             χειροκίνητη εκτέλεση βήματος (scout|build|content|...)
   decide <id> <approved|changes|rejected> --by <όνομα> [--comment "..."]
-                               απόφαση gate σε dry-run (στην κανονική λειτουργία: labels στο GitHub)
+                               απόφαση gate χωρίς GitHub Issues (με Issues: labels στο GitHub)
   export <campaign-id> [--tool instantly|smartlead|lemlist]
                                batch για το εργαλείο αποστολής, ΜΟΝΟ αν περάσει το compliance gate.
                                Δεν στέλνει τίποτα: γράφει αρχείο στο exports/ (εκτός git)
@@ -157,7 +157,7 @@ async function main(argv: string[]): Promise<number> {
     case 'decide': {
       const [id, decision] = args;
       if (!(ctx.approvals instanceof DryRunApprovals)) {
-        throw new Error('Το decide δουλεύει μόνο σε dry-run. Στην κανονική λειτουργία βάλε label στο GitHub issue.');
+        throw new Error('Το decide δουλεύει μόνο χωρίς GitHub Issues (dry-run ή χωρίς GITHUB_REPOSITORY). Με Issues βάλε label στο issue.');
       }
       if (!id || !decision || !['approved', 'changes', 'rejected'].includes(decision)) {
         throw new Error('Χρήση: decide <id> <approved|changes|rejected> --by <όνομα> [--comment "..."]');

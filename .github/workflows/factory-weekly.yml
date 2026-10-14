@@ -1,0 +1,71 @@
+# Κάθε Δευτέρα: κρατήσεις από το Cal.com (αν υπάρχει κλειδί), εβδομαδιαία αναφορά με αλλαγές
+# priority, retention των leads. Χρειάζεται SUPABASE_DB_URL (τα leads δεν ζουν στο Actions).
+name: Factory weekly
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Δευτέρα 09:00 ώρα Ελλάδας το καλοκαίρι
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry-run (τίποτα δεν γράφεται)'
+        type: boolean
+        default: true
+
+concurrency:
+  group: factory-state
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  weekly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '--dry-run' || '' }}
+      FACTORY_PAUSED: ${{ vars.FACTORY_PAUSED }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NODE_NO_WARNINGS: '1'
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      CAL_API_KEY: ${{ secrets.CAL_API_KEY }}
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: orchestrator/package-lock.json
+      - name: Χωρίς βάση δεν υπάρχει τίποτα να μετρηθεί
+        if: env.DRY_RUN == '' && env.SUPABASE_DB_URL == ''
+        run: |
+          echo "::notice::Δεν έχει οριστεί SUPABASE_DB_URL: το εβδομαδιαίο job δεν έχει δεδομένα. Παραλείπεται."
+          echo "SKIP=1" >> "$GITHUB_ENV"
+      - name: Branch του state
+        if: env.DRY_RUN == '' && env.SKIP != '1'
+        run: bash scripts/ci/prepare-state.sh
+      - run: npm ci
+        if: env.SKIP != '1'
+        working-directory: orchestrator
+      - name: Workers (για την κατηγοριοποίηση απαντήσεων)
+        if: env.DRY_RUN == '' && env.SKIP != '1'
+        run: bash scripts/ci/install-workers.sh
+      - name: Κρατήσεις Cal.com
+        if: env.SKIP != '1' && env.CAL_API_KEY != ''
+        run: npm run factory -- track-calcom $DRY_RUN
+      - name: Εβδομαδιαία αναφορά
+        if: env.SKIP != '1'
+        run: npm run factory -- weekly $DRY_RUN
+      - name: Retention
+        if: env.SKIP != '1'
+        run: npm run factory -- retention $DRY_RUN
+      - name: Commit state
+        if: env.DRY_RUN == '' && env.SKIP != '1'
+        run: |
+          bash scripts/ci/commit-state.sh "factory: εβδομαδιαία αναφορά $(date -u +%G-W%V)"

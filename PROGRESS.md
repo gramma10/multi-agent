@@ -11,7 +11,36 @@
 | 5. Leads σε όγκο | ✅ (χωρίς πραγματικά κλειδιά) |
 | 6. Campaigns + QA + export | ✅ (export μπλοκαρισμένο μέχρι νομική έγκριση) |
 | 7. Tracker και βρόχος μάθησης | ✅ |
-| 8. Χρονοπρογραμματισμός και παράδοση | ⏳ |
+| 8. Χρονοπρογραμματισμός και παράδοση | ✅ τοπικά (δεν έχει τρέξει στο Actions: δεν υπάρχει πρόσβαση push στο GitHub) |
+
+---
+
+## Φάση 8: Χρονοπρογραμματισμός και παράδοση (2026-10-14)
+
+### Τι ολοκληρώθηκε
+- **GitHub Actions** στο `.github/workflows/`:
+  - `factory-night.yml` (κάθε βράδυ), `factory-morning.yml` (κάθε πρωί), `factory-weekly.yml` (Δευτέρα: Cal.com, αναφορά, retention), με κοινό `concurrency` group `factory-state` και χειροκίνητη εκτέλεση με dry-run ως προεπιλογή (D050).
+  - `ci.yml`: orchestrator (lint, typecheck, tests), showcase (lint, typecheck, build, Playwright 390px), έλεγχος προσωπικών δεδομένων σε όλο το repo, και όλη η ροή σε dry-run (D051).
+- **State στο `factory/state`** με ένα draft PR προς το `main`, ποτέ push στο `main` (D049). Scripts: `scripts/ci/prepare-state.sh`, `commit-state.sh`, `install-workers.sh` (μόνο όσοι workers έχουν secret), `dry-run-e2e.sh`.
+- **README**: πίνακας workflows, πίνακας secrets (τι κάνει το καθένα και τι γίνεται χωρίς αυτό), ρυθμίσεις GitHub, repo variables, εναλλακτική με scheduled routines με τα ίδια scripts, και η ενότητα «Τι πρέπει να κάνουν οι ιδρυτές».
+
+### Τι ελέγχθηκε και πώς
+- `actionlint` 1.7.7 και στα 4 workflows: καθαρό (βρήκε 3 λάθη YAML, διορθώθηκαν).
+- `bash scripts/ci/dry-run-e2e.sh` τοπικά: πράσινο σε ~1,5 λεπτό. Κελιά φτάνουν ως `campaign_approved`, κάθε export (email, κλήσεις, DM) μπλοκάρεται με exit 2 και τη λίστα των λόγων, pilot και εβδομαδιαία αναφορά γράφονται.
+- `prepare-state.sh` / `commit-state.sh` απέναντι σε τοπικό bare remote: πρώτο run φτιάχνει το `factory/state` από το `main`· αλλαγή στο `main` μπαίνει με merge στο δεύτερο run· «καμία αλλαγή» δεν κάνει commit· `STATE_BRANCH=main` αρνείται με exit 1.
+- `npm run check` (orchestrator): 128/128. `node scripts/check-personal-data.mjs --all`: καθαρό.
+
+### Τι ΔΕΝ ελέγχθηκε
+- **Τα workflows δεν έχουν τρέξει στο GitHub Actions.** Το push στο `gramma10/multi-agent` επιστρέφει 403 από την αρχή του session (το Claude GitHub App δεν έχει πρόσβαση στο repo), οπότε κανένα commit δεν έχει ανέβει. Το κριτήριο «πρασινίζει στο Actions» μένει ανοιχτό μέχρι το πρώτο push.
+- Η εγκατάσταση των CLIs (`@anthropic-ai/claude-code`, `@openai/codex`, `@google/gemini-cli`) στο Actions και ένα πραγματικό run με `CLAUDE_CODE_OAUTH_TOKEN`.
+- Το job `showcase` του CI σε runner του GitHub (τοπικά περνά: 24/24 Playwright).
+
+### Αποφάσεις
+D049–D051.
+
+### Τι χρειάζομαι από τους ιδρυτές
+- **Πρόσβαση του Claude στο repo** (εγκατάσταση του Claude GitHub App στο `gramma10/multi-agent`), για να ανέβουν τα 8 commits στο `claude/wonderful-davinci-im3lie` και να ανοίξει το PR. Το repo δεν έχει ακόμα κανένα branch, ούτε `main`.
+- Τα υπόλοιπα στο README → «Τι πρέπει να κάνουν οι ιδρυτές».
 
 ---
 
