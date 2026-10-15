@@ -3,14 +3,15 @@
 id: xenodocheia-sales
 vertical: xenodocheia
 service: sales_agent
-state: published
+state: lead_sourcing
 created_at: 2026-10-14T19:18:37.728Z
-updated_at: 2026-10-14T21:15:53.681Z
+updated_at: 2026-10-15T01:02:01.846Z
 attempts:
   scout: 0
   build: 0
   content: 0
-last_error: null
+  leads: 1
+last_error: "leads: Στο CI τα leads χρειάζονται SUPABASE_DB_URL (αλλιώς η τοπική SQLite χάνεται στο τέλος του job)."
 scout_score: 9
 gates:
   idea:
@@ -107,3 +108,7 @@ history:
     actor: human:gramma10
     result: approved
     note: Έγκριση Gate 3 από gramma10 στη συνομιλία με το Claude Code (2026-10-14)
+  - at: 2026-10-15T01:02:01.826Z
+    from: published
+    to: lead_sourcing
+    actor: system:orchestrator

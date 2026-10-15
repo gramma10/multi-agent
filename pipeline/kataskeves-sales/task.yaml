@@ -1,0 +1,20 @@
+# Το γράφει ΜΟΝΟ ο orchestrator. Μην το επεξεργάζεσαι με το χέρι.
+# Για να περάσεις gate: label στο GitHub issue (ή `factory -- decide` σε dry-run).
+id: kataskeves-sales
+vertical: kataskeves
+service: sales_agent
+state: scouting
+created_at: 2026-10-15T01:02:01.684Z
+updated_at: 2026-10-15T01:02:01.895Z
+attempts:
+  scout: 1
+last_error: "scout: Κανένας διαθέσιμος worker για τον agent scout: claude: δεν είναι εγκατεστημένος; gemini: δεν είναι εγκατεστημένος"
+scout_score: null
+gates: {}
+feedback: []
+meta: {}
+history:
+  - at: 2026-10-15T01:02:01.858Z
+    from: queued
+    to: scouting
+    actor: system:orchestrator
