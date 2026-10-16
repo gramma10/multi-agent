@@ -1,6 +1,6 @@
 # Τι περιμένει έγκριση
 
-> Το ξαναγράφει ο orchestrator σε κάθε εκτέλεση. Τελευταία: 2026-10-15 09:38 UTC.
+> Το ξαναγράφει ο orchestrator σε κάθε εκτέλεση. Τελευταία: 2026-10-16 00:52 UTC.
 
 ## Περιμένουν εσένα (0)
 
@@ -8,10 +8,10 @@
 
 ## Χρειάζονται προσοχή
 
-- `kommotiria-booking` (lead_sourcing): leads: Στο CI τα leads χρειάζονται SUPABASE_DB_URL (αλλιώς η τοπική SQLite χάνεται στο τέλος του job). · προσπάθειες 1/3
-- `iatreia-support` (lead_sourcing): leads: Στο CI τα leads χρειάζονται SUPABASE_DB_URL (αλλιώς η τοπική SQLite χάνεται στο τέλος του job). · προσπάθειες 1/3
-- `xenodocheia-sales` (lead_sourcing): leads: Στο CI τα leads χρειάζονται SUPABASE_DB_URL (αλλιώς η τοπική SQLite χάνεται στο τέλος του job). · προσπάθειες 1/3
-- `kataskeves-sales` (scouting): scout: Κανένας διαθέσιμος worker για τον agent scout: claude: δεν είναι εγκατεστημένος; gemini: δεν είναι εγκατεστημένος · προσπάθειες 1/3
+- `kommotiria-booking` (lead_sourcing): leads: Στο CI τα leads χρειάζονται SUPABASE_DB_URL (αλλιώς η τοπική SQLite χάνεται στο τέλος του job). · προσπάθειες 2/3
+- `iatreia-support` (lead_sourcing): leads: Στο CI τα leads χρειάζονται SUPABASE_DB_URL (αλλιώς η τοπική SQLite χάνεται στο τέλος του job). · προσπάθειες 2/3
+- `xenodocheia-sales` (lead_sourcing): leads: Στο CI τα leads χρειάζονται SUPABASE_DB_URL (αλλιώς η τοπική SQLite χάνεται στο τέλος του job). · προσπάθειες 2/3
+- `kataskeves-sales` (scouting): scout: Κανένας διαθέσιμος worker για τον agent scout: claude: δεν είναι εγκατεστημένος; gemini: δεν είναι εγκατεστημένος · προσπάθειες 2/3
 
 ## Σύνοψη πίνακα
 

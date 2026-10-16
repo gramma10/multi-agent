@@ -9,3 +9,5 @@
 {"ts":"2026-10-14T21:06:23.832Z","agent":"content","cell":"xenodocheia-sales","worker":"prepared","model":"sonnet","duration_ms":0,"exit_reason":"ok","usage":null}
 {"ts":"2026-10-15T01:02:01.892Z","agent":"scout","cell":"kataskeves-sales","worker":"claude","model":"sonnet","duration_ms":7,"exit_reason":"not_installed","usage":null,"error":"claude: δεν βρέθηκε"}
 {"ts":"2026-10-15T01:02:01.895Z","agent":"scout","cell":"kataskeves-sales","worker":"gemini","model":null,"duration_ms":3,"exit_reason":"not_installed","usage":null,"error":"gemini: δεν βρέθηκε"}
+{"ts":"2026-10-16T00:52:16.759Z","agent":"scout","cell":"kataskeves-sales","worker":"claude","model":"sonnet","duration_ms":5,"exit_reason":"not_installed","usage":null,"error":"claude: δεν βρέθηκε"}
+{"ts":"2026-10-16T00:52:16.761Z","agent":"scout","cell":"kataskeves-sales","worker":"gemini","model":null,"duration_ms":2,"exit_reason":"not_installed","usage":null,"error":"gemini: δεν βρέθηκε"}
