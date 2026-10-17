@@ -5,12 +5,12 @@ vertical: xenodocheia
 service: sales_agent
 state: lead_sourcing
 created_at: 2026-10-14T19:18:37.728Z
-updated_at: 2026-10-16T00:52:16.736Z
+updated_at: 2026-10-17T00:52:31.700Z
 attempts:
   scout: 0
   build: 0
   content: 0
-  leads: 2
+  leads: 3
 last_error: "leads: Στο CI τα leads χρειάζονται SUPABASE_DB_URL (αλλιώς η τοπική SQLite χάνεται στο τέλος του job)."
 scout_score: 9
 gates:
