@@ -1,0 +1,20 @@
+# Το γράφει ΜΟΝΟ ο orchestrator. Μην το επεξεργάζεσαι με το χέρι.
+# Για να περάσεις gate: label στο GitHub issue (ή `factory -- decide` σε dry-run).
+id: gymnastiria-sales
+vertical: gymnastiria
+service: sales_agent
+state: scouting
+created_at: 2026-10-18T00:29:07.698Z
+updated_at: 2026-10-18T00:29:07.774Z
+attempts:
+  scout: 1
+last_error: "scout: Κανένας διαθέσιμος worker για τον agent scout: claude: δεν είναι εγκατεστημένος; gemini: δεν είναι εγκατεστημένος"
+scout_score: null
+gates: {}
+feedback: []
+meta: {}
+history:
+  - at: 2026-10-18T00:29:07.714Z
+    from: queued
+    to: scouting
+    actor: system:orchestrator

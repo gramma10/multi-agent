@@ -287,7 +287,7 @@ cells:
     vertical: gymnastiria
     service: sales_agent
     priority: 66
-    status: queued
+    status: scouting
     fit: high
     notes: "Leads για δοκιμαστικό που χάνονται αν δεν απαντήσεις μέσα στην ώρα."
   - id: gymnastiria-support
