@@ -15,3 +15,5 @@
 {"ts":"2026-10-17T00:52:31.730Z","agent":"scout","cell":"kataskeves-sales","worker":"gemini","model":null,"duration_ms":2,"exit_reason":"not_installed","usage":null,"error":"gemini: δεν βρέθηκε"}
 {"ts":"2026-10-18T00:29:07.772Z","agent":"scout","cell":"gymnastiria-sales","worker":"claude","model":"sonnet","duration_ms":5,"exit_reason":"not_installed","usage":null,"error":"claude: δεν βρέθηκε"}
 {"ts":"2026-10-18T00:29:07.774Z","agent":"scout","cell":"gymnastiria-sales","worker":"gemini","model":null,"duration_ms":2,"exit_reason":"not_installed","usage":null,"error":"gemini: δεν βρέθηκε"}
+{"ts":"2026-10-19T00:34:30.555Z","agent":"scout","cell":"gymnastiria-sales","worker":"claude","model":"sonnet","duration_ms":4,"exit_reason":"not_installed","usage":null,"error":"claude: δεν βρέθηκε"}
+{"ts":"2026-10-19T00:34:30.558Z","agent":"scout","cell":"gymnastiria-sales","worker":"gemini","model":null,"duration_ms":2,"exit_reason":"not_installed","usage":null,"error":"gemini: δεν βρέθηκε"}
