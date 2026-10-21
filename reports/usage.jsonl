@@ -19,3 +19,5 @@
 {"ts":"2026-10-19T00:34:30.558Z","agent":"scout","cell":"gymnastiria-sales","worker":"gemini","model":null,"duration_ms":2,"exit_reason":"not_installed","usage":null,"error":"gemini: δεν βρέθηκε"}
 {"ts":"2026-10-20T01:20:16.589Z","agent":"scout","cell":"gymnastiria-sales","worker":"claude","model":"sonnet","duration_ms":7,"exit_reason":"not_installed","usage":null,"error":"claude: δεν βρέθηκε"}
 {"ts":"2026-10-20T01:20:16.592Z","agent":"scout","cell":"gymnastiria-sales","worker":"gemini","model":null,"duration_ms":3,"exit_reason":"not_installed","usage":null,"error":"gemini: δεν βρέθηκε"}
+{"ts":"2026-10-21T01:05:19.974Z","agent":"scout","cell":"mesitika-sales","worker":"claude","model":"sonnet","duration_ms":7,"exit_reason":"not_installed","usage":null,"error":"claude: δεν βρέθηκε"}
+{"ts":"2026-10-21T01:05:19.977Z","agent":"scout","cell":"mesitika-sales","worker":"gemini","model":null,"duration_ms":3,"exit_reason":"not_installed","usage":null,"error":"gemini: δεν βρέθηκε"}

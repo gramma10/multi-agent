@@ -329,7 +329,7 @@ cells:
     vertical: mesitika
     service: sales_agent
     priority: 66
-    status: queued
+    status: scouting
     fit: high
     notes: "Πολλά inquiries από αγγελίες, λίγα σοβαρά. Αξιολόγηση και ραντεβού υπόδειξης."
   - id: mesitika-support

@@ -1,6 +1,6 @@
 # Τι περιμένει έγκριση
 
-> Το ξαναγράφει ο orchestrator σε κάθε εκτέλεση. Τελευταία: 2026-10-20 09:49 UTC.
+> Το ξαναγράφει ο orchestrator σε κάθε εκτέλεση. Τελευταία: 2026-10-21 01:05 UTC.
 
 ## Περιμένουν εσένα (0)
 
@@ -13,11 +13,12 @@
 - `xenodocheia-sales` (lead_sourcing): leads: Στο CI τα leads χρειάζονται SUPABASE_DB_URL (αλλιώς η τοπική SQLite χάνεται στο τέλος του job). · **σταμάτησε μετά από 3 προσπάθειες**, τρέξε χειροκίνητα: `npm run factory -- cell xenodocheia-sales <βήμα>`
 - `kataskeves-sales` (scouting): scout: Κανένας διαθέσιμος worker για τον agent scout: claude: δεν είναι εγκατεστημένος; gemini: δεν είναι εγκατεστημένος · **σταμάτησε μετά από 3 προσπάθειες**, τρέξε χειροκίνητα: `npm run factory -- cell kataskeves-sales <βήμα>`
 - `gymnastiria-sales` (scouting): scout: Κανένας διαθέσιμος worker για τον agent scout: claude: δεν είναι εγκατεστημένος; gemini: δεν είναι εγκατεστημένος · **σταμάτησε μετά από 3 προσπάθειες**, τρέξε χειροκίνητα: `npm run factory -- cell gymnastiria-sales <βήμα>`
+- `mesitika-sales` (scouting): scout: Κανένας διαθέσιμος worker για τον agent scout: claude: δεν είναι εγκατεστημένος; gemini: δεν είναι εγκατεστημένος · προσπάθειες 1/3
 
 ## Σύνοψη πίνακα
 
 | State | Κελιά |
 |---|---|
-| queued | 55 |
+| queued | 54 |
 | lead_sourcing | 3 |
-| scouting | 2 |
+| scouting | 3 |
