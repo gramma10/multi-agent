@@ -23,3 +23,5 @@
 {"ts":"2026-10-21T01:05:19.977Z","agent":"scout","cell":"mesitika-sales","worker":"gemini","model":null,"duration_ms":3,"exit_reason":"not_installed","usage":null,"error":"gemini: δεν βρέθηκε"}
 {"ts":"2026-10-22T01:03:00.344Z","agent":"scout","cell":"mesitika-sales","worker":"claude","model":"sonnet","duration_ms":8,"exit_reason":"not_installed","usage":null,"error":"claude: δεν βρέθηκε"}
 {"ts":"2026-10-22T01:03:00.347Z","agent":"scout","cell":"mesitika-sales","worker":"gemini","model":null,"duration_ms":3,"exit_reason":"not_installed","usage":null,"error":"gemini: δεν βρέθηκε"}
+{"ts":"2026-10-23T01:04:03.825Z","agent":"scout","cell":"mesitika-sales","worker":"claude","model":"sonnet","duration_ms":7,"exit_reason":"not_installed","usage":null,"error":"claude: δεν βρέθηκε"}
+{"ts":"2026-10-23T01:04:03.828Z","agent":"scout","cell":"mesitika-sales","worker":"gemini","model":null,"duration_ms":3,"exit_reason":"not_installed","usage":null,"error":"gemini: δεν βρέθηκε"}
