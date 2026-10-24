@@ -413,7 +413,7 @@ cells:
     vertical: frontistiria
     service: sales_agent
     priority: 66
-    status: queued
+    status: scouting
     fit: high
     notes: "Εγγραφές τον Σεπτέμβριο: πολλά μηνύματα γονιών μαζεμένα σε λίγες εβδομάδες."
   - id: frontistiria-support
