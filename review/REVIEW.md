@@ -1,6 +1,6 @@
 # Τι περιμένει έγκριση
 
-> Το ξαναγράφει ο orchestrator σε κάθε εκτέλεση. Τελευταία: 2026-10-25 09:35 UTC.
+> Το ξαναγράφει ο orchestrator σε κάθε εκτέλεση. Τελευταία: 2026-10-26 00:48 UTC.
 
 ## Περιμένουν εσένα (0)
 
@@ -14,7 +14,7 @@
 - `kataskeves-sales` (scouting): scout: Κανένας διαθέσιμος worker για τον agent scout: claude: δεν είναι εγκατεστημένος; gemini: δεν είναι εγκατεστημένος · **σταμάτησε μετά από 3 προσπάθειες**, τρέξε χειροκίνητα: `npm run factory -- cell kataskeves-sales <βήμα>`
 - `gymnastiria-sales` (scouting): scout: Κανένας διαθέσιμος worker για τον agent scout: claude: δεν είναι εγκατεστημένος; gemini: δεν είναι εγκατεστημένος · **σταμάτησε μετά από 3 προσπάθειες**, τρέξε χειροκίνητα: `npm run factory -- cell gymnastiria-sales <βήμα>`
 - `mesitika-sales` (scouting): scout: Κανένας διαθέσιμος worker για τον agent scout: claude: δεν είναι εγκατεστημένος; gemini: δεν είναι εγκατεστημένος · **σταμάτησε μετά από 3 προσπάθειες**, τρέξε χειροκίνητα: `npm run factory -- cell mesitika-sales <βήμα>`
-- `frontistiria-sales` (scouting): scout: Κανένας διαθέσιμος worker για τον agent scout: claude: δεν είναι εγκατεστημένος; gemini: δεν είναι εγκατεστημένος · προσπάθειες 2/3
+- `frontistiria-sales` (scouting): scout: Κανένας διαθέσιμος worker για τον agent scout: claude: δεν είναι εγκατεστημένος; gemini: δεν είναι εγκατεστημένος · **σταμάτησε μετά από 3 προσπάθειες**, τρέξε χειροκίνητα: `npm run factory -- cell frontistiria-sales <βήμα>`
 
 ## Σύνοψη πίνακα
 
