@@ -84,7 +84,7 @@ cells:
     vertical: xenodocheia
     service: support_agent
     priority: 65
-    status: queued
+    status: scouting
     fit: high
     notes: "Ερωτήσεις επισκεπτών 24/7: check-in, parking, μεταφορές, πρωινό."
   - id: xenodocheia-operations
