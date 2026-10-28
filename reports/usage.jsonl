@@ -33,3 +33,5 @@
 {"ts":"2026-10-26T00:48:35.845Z","agent":"scout","cell":"frontistiria-sales","worker":"gemini","model":null,"duration_ms":3,"exit_reason":"not_installed","usage":null,"error":"gemini: δεν βρέθηκε"}
 {"ts":"2026-10-27T01:47:59.826Z","agent":"scout","cell":"xenodocheia-support","worker":"claude","model":"sonnet","duration_ms":6,"exit_reason":"not_installed","usage":null,"error":"claude: δεν βρέθηκε"}
 {"ts":"2026-10-27T01:47:59.828Z","agent":"scout","cell":"xenodocheia-support","worker":"gemini","model":null,"duration_ms":2,"exit_reason":"not_installed","usage":null,"error":"gemini: δεν βρέθηκε"}
+{"ts":"2026-10-28T01:51:55.454Z","agent":"scout","cell":"xenodocheia-support","worker":"claude","model":"sonnet","duration_ms":7,"exit_reason":"not_installed","usage":null,"error":"claude: δεν βρέθηκε"}
+{"ts":"2026-10-28T01:51:55.457Z","agent":"scout","cell":"xenodocheia-support","worker":"gemini","model":null,"duration_ms":3,"exit_reason":"not_installed","usage":null,"error":"gemini: δεν βρέθηκε"}
