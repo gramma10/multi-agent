@@ -37,3 +37,5 @@
 {"ts":"2026-10-28T01:51:55.457Z","agent":"scout","cell":"xenodocheia-support","worker":"gemini","model":null,"duration_ms":3,"exit_reason":"not_installed","usage":null,"error":"gemini: δεν βρέθηκε"}
 {"ts":"2026-10-29T01:59:27.324Z","agent":"scout","cell":"xenodocheia-support","worker":"claude","model":"sonnet","duration_ms":6,"exit_reason":"not_installed","usage":null,"error":"claude: δεν βρέθηκε"}
 {"ts":"2026-10-29T01:59:27.326Z","agent":"scout","cell":"xenodocheia-support","worker":"gemini","model":null,"duration_ms":2,"exit_reason":"not_installed","usage":null,"error":"gemini: δεν βρέθηκε"}
+{"ts":"2026-10-30T02:12:49.685Z","agent":"scout","cell":"eshops-support","worker":"claude","model":"sonnet","duration_ms":5,"exit_reason":"not_installed","usage":null,"error":"claude: δεν βρέθηκε"}
+{"ts":"2026-10-30T02:12:49.687Z","agent":"scout","cell":"eshops-support","worker":"gemini","model":null,"duration_ms":2,"exit_reason":"not_installed","usage":null,"error":"gemini: δεν βρέθηκε"}

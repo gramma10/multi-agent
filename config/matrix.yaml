@@ -378,7 +378,7 @@ cells:
     vertical: eshops
     service: support_agent
     priority: 65
-    status: queued
+    status: scouting
     fit: high
     notes: "«Πού είναι η παραγγελία μου», επιστροφές, μεγέθη. Ο ίδιος όγκος κάθε μέρα."
   - id: eshops-operations
