@@ -1,6 +1,6 @@
 # Τι περιμένει έγκριση
 
-> Το ξαναγράφει ο orchestrator σε κάθε εκτέλεση. Τελευταία: 2026-10-30 11:11 UTC.
+> Το ξαναγράφει ο orchestrator σε κάθε εκτέλεση. Τελευταία: 2026-10-31 01:55 UTC.
 
 ## Περιμένουν εσένα (0)
 
@@ -16,7 +16,7 @@
 - `mesitika-sales` (scouting): scout: Κανένας διαθέσιμος worker για τον agent scout: claude: δεν είναι εγκατεστημένος; gemini: δεν είναι εγκατεστημένος · **σταμάτησε μετά από 3 προσπάθειες**, τρέξε χειροκίνητα: `npm run factory -- cell mesitika-sales <βήμα>`
 - `frontistiria-sales` (scouting): scout: Κανένας διαθέσιμος worker για τον agent scout: claude: δεν είναι εγκατεστημένος; gemini: δεν είναι εγκατεστημένος · **σταμάτησε μετά από 3 προσπάθειες**, τρέξε χειροκίνητα: `npm run factory -- cell frontistiria-sales <βήμα>`
 - `xenodocheia-support` (scouting): scout: Κανένας διαθέσιμος worker για τον agent scout: claude: δεν είναι εγκατεστημένος; gemini: δεν είναι εγκατεστημένος · **σταμάτησε μετά από 3 προσπάθειες**, τρέξε χειροκίνητα: `npm run factory -- cell xenodocheia-support <βήμα>`
-- `eshops-support` (scouting): scout: Κανένας διαθέσιμος worker για τον agent scout: claude: δεν είναι εγκατεστημένος; gemini: δεν είναι εγκατεστημένος · προσπάθειες 1/3
+- `eshops-support` (scouting): scout: Κανένας διαθέσιμος worker για τον agent scout: claude: δεν είναι εγκατεστημένος; gemini: δεν είναι εγκατεστημένος · προσπάθειες 2/3
 
 ## Σύνοψη πίνακα
 
